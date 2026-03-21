@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { DecibelState, ExposureReading, ExposureSession, getZone } from '@/lib/types';
 import { saveSession } from '@/lib/db/local';
+import { savePinToCloud, saveSessionToCloud } from '@/lib/db/supabase';
 import { useToast } from '@/components/Toast';
 
 export const useDecibelStore = create<DecibelState>((set, get) => ({
@@ -86,10 +87,11 @@ export const useDecibelStore = create<DecibelState>((set, get) => ({
       pastSessions: [newSession, ...state.pastSessions],
     });
 
-    // Persist to IndexedDB
+    // Persist to IndexedDB + Supabase
     saveSession(newSession).catch(() => {
       useToast.getState().show('Session could not be saved locally', 'error');
     });
+    saveSessionToCloud(newSession).catch(() => {});
   },
 
   updateAudioData: (data) => {
@@ -148,6 +150,16 @@ export const useDecibelStore = create<DecibelState>((set, get) => ({
     set((state) => ({
       mapPins: [...state.mapPins, pin],
     }));
+    // Persist to Supabase
+    savePinToCloud(pin).catch(() => {});
+  },
+
+  loadCloudPins: (pins) => {
+    set((state) => {
+      const existingIds = new Set(state.mapPins.map(p => p.id));
+      const newPins = pins.filter(p => !existingIds.has(p.id));
+      return { mapPins: [...state.mapPins, ...newPins] };
+    });
   },
 
   setReport: (report) => {

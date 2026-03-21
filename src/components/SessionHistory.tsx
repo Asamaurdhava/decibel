@@ -3,21 +3,25 @@
 import { useEffect } from 'react';
 import { useDecibelStore } from '@/lib/store/decibel-store';
 import { getSessions } from '@/lib/db/local';
+import { getCloudSessions } from '@/lib/db/supabase';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 
 export default function SessionHistory() {
   const { pastSessions, setPastSessions, loadSessionFromHistory, session } = useDecibelStore();
 
-  // Load sessions from IndexedDB on mount
+  // Load sessions from IndexedDB + Supabase on mount
   useEffect(() => {
-    getSessions()
-      .then((sessions) => {
-        // Sort newest first
-        const sorted = sessions.sort((a, b) => (b.startTime) - (a.startTime));
-        setPastSessions(sorted);
-      })
-      .catch(() => {});
+    Promise.all([
+      getSessions().catch(() => []),
+      getCloudSessions().catch(() => []),
+    ]).then(([local, cloud]) => {
+      // Merge and dedupe by id
+      const map = new Map<string, typeof local[0]>();
+      [...local, ...cloud].forEach(s => map.set(s.id, s));
+      const merged = Array.from(map.values()).sort((a, b) => b.startTime - a.startTime);
+      setPastSessions(merged);
+    });
   }, [setPastSessions]);
 
   if (pastSessions.length === 0) return null;

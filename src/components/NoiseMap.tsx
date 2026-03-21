@@ -4,6 +4,7 @@ import { useRef, useEffect, useState } from 'react';
 import { useDecibelStore } from '@/lib/store/decibel-store';
 import { pinsToGeoJSON, heatmapLayerConfig, circleLayerConfig } from '@/lib/map/heatmap';
 import { NoiseMapPin, getZone, getZoneColor } from '@/lib/types';
+import { getCloudPins } from '@/lib/db/supabase';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
@@ -16,6 +17,13 @@ export default function NoiseMap() {
   const { mapPins, userLocation, setUserLocation, addMapPin, currentDb, isMonitoring } = useDecibelStore();
   const [mapLoaded, setMapLoaded] = useState(false);
   const [selectedPin, setSelectedPin] = useState<NoiseMapPin | null>(null);
+
+  // Load community pins from Supabase on mount
+  useEffect(() => {
+    getCloudPins()
+      .then((pins) => useDecibelStore.getState().loadCloudPins(pins))
+      .catch(() => {});
+  }, []);
 
   useEffect(() => {
     if (!navigator.geolocation) return;

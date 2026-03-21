@@ -183,6 +183,7 @@ export interface DecibelState {
   updateNoiseDose: (dose: number) => void;
   setUserLocation: (location: { lat: number; lng: number }) => void;
   addMapPin: (pin: NoiseMapPin) => void;
+  loadCloudPins: (pins: NoiseMapPin[]) => void;
   setReport: (report: HearingReport | null) => void;
   setIsGeneratingReport: (isGenerating: boolean) => void;
   setContextualTip: (tip: ContextualTip | null) => void;
