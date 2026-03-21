@@ -32,7 +32,7 @@ export default function Home() {
         {/* Title */}
         <h1 className="mb-5 sm:mb-6 flex justify-center">
           <FuzzyText
-            fontSize="clamp(3.5rem, 10vw, 7rem)"
+            fontSize="clamp(3.2rem, 13vw, 7rem)"
             fontWeight={700}
             fontFamily="'Space Mono', monospace"
             color="#ffffff"
@@ -42,7 +42,7 @@ export default function Home() {
             fuzzRange={20}
             fps={30}
             direction="horizontal"
-            letterSpacing={12}
+            letterSpacing={6}
             transitionDuration={500}
           >
             DECIBEL
