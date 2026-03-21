@@ -60,6 +60,14 @@ export default function NoiseMap() {
       });
       map.addControl(geolocate, 'top-right');
 
+      // Update store whenever user location changes
+      geolocate.on('geolocate', (e: GeolocationPosition) => {
+        useDecibelStore.getState().setUserLocation({
+          lat: e.coords.latitude,
+          lng: e.coords.longitude,
+        });
+      });
+
       map.on('load', () => {
         // Auto-trigger geolocation
         geolocate.trigger();

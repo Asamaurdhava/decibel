@@ -63,6 +63,7 @@ export interface ExposureSession {
     lat: number;
     lng: number;
   };
+  report?: HearingReport;
 }
 
 // --- Noise Map ---
@@ -190,6 +191,7 @@ export interface DecibelState {
   setNoiseComparison: (comparison: NoiseComparison | null) => void;
   setSessionSummary: (summary: SessionSummary | null) => void;
   setIsGeneratingSummary: (isGenerating: boolean) => void;
+  deletedSessionIds: string[];
   removeSession: (id: string) => void;
   clearCurrentReport: () => void;
   resetSession: () => void;

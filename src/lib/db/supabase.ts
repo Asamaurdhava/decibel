@@ -43,7 +43,7 @@ export async function getCloudPins(): Promise<NoiseMapPin[]> {
 // --- Sessions ---
 
 export async function saveSessionToCloud(session: ExposureSession): Promise<void> {
-  const { error } = await supabase.from('sessions').insert({
+  const { error } = await supabase.from('sessions').upsert({
     id: session.id,
     start_time: session.startTime,
     end_time: session.endTime,
@@ -55,6 +55,7 @@ export async function saveSessionToCloud(session: ExposureSession): Promise<void
     noise_dose_percent: session.noiseDosePercent,
     lat: session.location?.lat || null,
     lng: session.location?.lng || null,
+    report: session.report || null,
   });
   if (error) throw error;
 }
@@ -85,5 +86,6 @@ export async function getCloudSessions(): Promise<ExposureSession[]> {
     timeAbove100: row.time_above_100,
     noiseDosePercent: row.noise_dose_percent,
     location: row.lat && row.lng ? { lat: row.lat, lng: row.lng } : undefined,
+    report: row.report || undefined,
   }));
 }

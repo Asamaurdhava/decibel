@@ -1,10 +1,11 @@
 import { create } from 'zustand';
+import { persist, createJSONStorage } from 'zustand/middleware';
 import { DecibelState, ExposureReading, ExposureSession, getZone } from '@/lib/types';
 import { saveSession, deleteSession as deleteLocalSession } from '@/lib/db/local';
 import { savePinToCloud, saveSessionToCloud, deleteSessionFromCloud } from '@/lib/db/supabase';
 import { useToast } from '@/components/Toast';
 
-export const useDecibelStore = create<DecibelState>((set, get) => ({
+export const useDecibelStore = create<DecibelState>()(persist((set, get) => ({
   // Audio
   isMonitoring: false,
   currentDb: 0,
@@ -35,6 +36,7 @@ export const useDecibelStore = create<DecibelState>((set, get) => ({
 
   // Session history
   pastSessions: [],
+  deletedSessionIds: [] as string[],
 
   // Claude real-time features
   contextualTip: null,
@@ -163,7 +165,21 @@ export const useDecibelStore = create<DecibelState>((set, get) => ({
   },
 
   setReport: (report) => {
-    set({ report });
+    const state = get();
+    // Persist report into the session object
+    if (report && state.session) {
+      const updatedSession = { ...state.session, report };
+      set({ report, session: updatedSession });
+      // Update in pastSessions too
+      set((s) => ({
+        pastSessions: s.pastSessions.map(ps => ps.id === updatedSession.id ? updatedSession : ps),
+      }));
+      // Persist to IndexedDB + Supabase
+      saveSession(updatedSession).catch(() => {});
+      saveSessionToCloud(updatedSession).catch(() => {});
+    } else {
+      set({ report });
+    }
   },
 
   setIsGeneratingReport: (isGenerating) => {
@@ -187,13 +203,14 @@ export const useDecibelStore = create<DecibelState>((set, get) => ({
   },
 
   setPastSessions: (sessions) => {
-    set({ pastSessions: sessions });
+    const deleted = new Set(get().deletedSessionIds);
+    set({ pastSessions: sessions.filter(s => !deleted.has(s.id)) });
   },
 
   loadSessionFromHistory: (session) => {
     set({
       session,
-      report: null,
+      report: session.report || null,
       isGeneratingReport: false,
       sessionSummary: null,
     });
@@ -203,7 +220,7 @@ export const useDecibelStore = create<DecibelState>((set, get) => ({
     const state = get();
     set({
       pastSessions: state.pastSessions.filter(s => s.id !== id),
-      // If the removed session is the currently viewed one, clear it
+      deletedSessionIds: [...state.deletedSessionIds, id],
       ...(state.session?.id === id ? { session: null, report: null } : {}),
     });
     deleteLocalSession(id).catch(() => {});
@@ -238,4 +255,17 @@ export const useDecibelStore = create<DecibelState>((set, get) => ({
       isGeneratingSummary: false,
     });
   },
+}), {
+  name: 'decibel-store',
+  storage: createJSONStorage(() => {
+    if (typeof window === 'undefined') return { getItem: () => null, setItem: () => {}, removeItem: () => {} };
+    return localStorage;
+  }),
+  partialize: (state) => ({
+    session: state.session,
+    report: state.report,
+    pastSessions: state.pastSessions,
+    deletedSessionIds: state.deletedSessionIds,
+    mapPins: state.mapPins,
+  }),
 }));

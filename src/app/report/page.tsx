@@ -97,7 +97,21 @@ export default function ReportPage() {
           </div>
         </div>
         <div className="flex items-center gap-2">
-          {report && <Button variant="ghost" size="sm" onClick={handleDownloadPDF} className="font-mono text-xs text-muted-foreground">PDF</Button>}
+          {report && (
+            <>
+              <Button variant="ghost" size="sm" onClick={handleDownloadPDF} className="font-mono text-xs text-muted-foreground">
+                PDF
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => { if (session) { store.removeSession(session.id); clearCurrentReport(); } }}
+                className="font-mono text-xs text-red-400/60 hover:text-red-400"
+              >
+                Delete
+              </Button>
+            </>
+          )}
           {!report && !isGeneratingReport && (
             <Button size="sm" onClick={handleGenerateReport} className="gold-shimmer-bg text-black font-mono text-xs font-bold border-0">Generate</Button>
           )}
