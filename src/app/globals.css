@@ -1,27 +1,155 @@
+@import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:wght@400;500;600;700&display=swap');
+@import url('https://api.fontshare.com/v2/css?f[]=telma@300,400,500&display=swap');
+@import url('https://api.mapbox.com/mapbox-gl-js/v3.4.0/mapbox-gl.css');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+@layer base {
+  :root {
+    --background: 0 0% 2%;
+    --foreground: 0 0% 95%;
+
+    --card: 0 0% 5%;
+    --card-foreground: 0 0% 95%;
+
+    --popover: 0 0% 5%;
+    --popover-foreground: 0 0% 95%;
+
+    --primary: 43 100% 50%;
+    --primary-foreground: 0 0% 2%;
+
+    --secondary: 0 0% 10%;
+    --secondary-foreground: 0 0% 80%;
+
+    --muted: 0 0% 10%;
+    --muted-foreground: 0 0% 50%;
+
+    --accent: 43 100% 50%;
+    --accent-foreground: 0 0% 2%;
+
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 95%;
+
+    --warning: 43 96% 56%;
+    --warning-foreground: 0 0% 2%;
+
+    --safe: 142 76% 36%;
+    --safe-foreground: 0 0% 2%;
+
+    --border: 0 0% 14%;
+    --input: 0 0% 14%;
+    --ring: 43 100% 50%;
+
+    --radius: 0.75rem;
+
+    --gold: 43 100% 50%;
+    --gold-light: 43 100% 65%;
+    --gold-dark: 40 100% 40%;
+    --gold-muted: 43 60% 30%;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 body {
-  color: var(--foreground);
-  background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
+  min-height: 100dvh;
+  overflow-x: hidden;
 }
 
-@layer utilities {
-  .text-balance {
-    text-wrap: balance;
+/* Safe area padding for mobile notch/dynamic island */
+@supports (padding-top: env(safe-area-inset-top)) {
+  body {
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
   }
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: hsl(0 0% 5%);
+}
+
+::-webkit-scrollbar-thumb {
+  background: hsl(0 0% 18%);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: hsl(0 0% 25%);
+}
+
+/* Canvas rendering */
+canvas {
+  image-rendering: -webkit-optimize-contrast;
+  image-rendering: crisp-edges;
+}
+
+/* Shimmer effects */
+@layer utilities {
+  .gold-shimmer {
+    background: linear-gradient(
+      110deg,
+      rgba(255,255,255,0.65) 0%,
+      rgba(255,255,255,0.85) 30%,
+      rgba(255,255,255,1) 50%,
+      rgba(255,255,255,0.85) 70%,
+      rgba(255,255,255,0.65) 100%
+    );
+    background-size: 400% 100%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: shimmer 8s linear infinite;
+  }
+
+  .gold-shimmer-bg {
+    background: linear-gradient(
+      110deg,
+      hsl(43 100% 50%) 0%,
+      hsl(43 100% 65%) 40%,
+      hsl(43 100% 50%) 50%,
+      hsl(43 100% 65%) 60%,
+      hsl(43 100% 50%) 100%
+    );
+    background-size: 200% 100%;
+    animation: shimmer 3s ease-in-out infinite;
+  }
+
+  .gold-border {
+    border-color: hsl(43 100% 50% / 0.3);
+  }
+
+  .gold-glow {
+    box-shadow: 0 0 20px hsl(0 0% 100% / 0.04), 0 0 60px hsl(0 0% 100% / 0.02);
+  }
+}
+
+@keyframes shimmer {
+  0% { background-position: 400% 0; }
+  100% { background-position: -400% 0; }
+}
+
+@keyframes loc-pulse {
+  0% { transform: scale(1); opacity: 0.6; }
+  100% { transform: scale(3); opacity: 0; }
 }

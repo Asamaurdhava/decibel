@@ -1,101 +1,120 @@
-import Image from "next/image";
+'use client';
+
+import Link from 'next/link';
+import { motion } from 'framer-motion';
+import BorderGlow from '@/components/ui/border-glow';
+import LightRays from '@/components/ui/light-rays';
+import FuzzyText from '@/components/ui/fuzzy-text';
 
 export default function Home() {
   return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="https://nextjs.org/icons/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+    <div className="flex flex-col items-center justify-center min-h-[100dvh] px-4 sm:px-6 md:px-8 relative overflow-hidden">
+      <LightRays
+        raysOrigin="top-center"
+        raysColor="#ffffff"
+        raysSpeed={0.3}
+        lightSpread={0.5}
+        rayLength={3}
+        followMouse
+        mouseInfluence={0.06}
+        noiseAmount={0}
+        distortion={0}
+        pulsating={false}
+        fadeDistance={1.5}
+        saturation={0.4}
+      />
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6 }}
+        className="text-center max-w-3xl mx-auto relative z-10"
+      >
+        {/* Title */}
+        <h1 className="mb-5 sm:mb-6 flex justify-center">
+          <FuzzyText
+            fontSize="clamp(3.5rem, 10vw, 7rem)"
+            fontWeight={700}
+            fontFamily="'Space Mono', monospace"
+            color="#ffffff"
+            baseIntensity={0.15}
+            hoverIntensity={0.4}
+            enableHover
+            fuzzRange={20}
+            fps={30}
+            direction="horizontal"
+            letterSpacing={12}
+            transitionDuration={500}
+          >
+            DECIBEL
+          </FuzzyText>
+        </h1>
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+        {/* Tagline */}
+        <p className="text-muted-foreground text-xs sm:text-sm font-mono tracking-[0.3em] lowercase mb-8 sm:mb-10">
+          your ears don&apos;t get second chances
+        </p>
+
+        {/* Divider */}
+        <div className="w-16 h-px bg-gradient-to-r from-transparent via-white/30 to-transparent mx-auto mb-8 sm:mb-10" />
+
+        {/* Description */}
+        <p className="text-muted-foreground text-base sm:text-lg leading-relaxed mb-10 sm:mb-12 max-w-lg mx-auto">
+          Turn your phone into a sound level monitor. Track noise exposure in real time.
+          Get a personalized hearing risk profile backed by WHO safety thresholds.
+        </p>
+
+        {/* CTA */}
+        <Link href="/monitor">
+          <BorderGlow
+            borderRadius={9999}
+            glowColor="43 100 55"
+            backgroundColor="#080808"
+            glowRadius={50}
+            glowIntensity={0.6}
+            coneSpread={20}
+            edgeSensitivity={15}
+            colors={['#FFAA00', '#CC8800', '#FFCC44']}
+            fillOpacity={0.15}
+            className="inline-block"
           >
-            <Image
-              className="dark:invert"
-              src="https://nextjs.org/icons/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
-        </div>
-      </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
+            <span className="px-12 sm:px-16 py-5 sm:py-6 text-base sm:text-lg font-mono tracking-[0.2em] uppercase text-white font-normal block">
+              start monitoring
+            </span>
+          </BorderGlow>
+        </Link>
+
+        {/* Stats */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.8 }}
+          className="mt-16 sm:mt-20 flex items-center justify-center gap-8 sm:gap-12"
         >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+          <Stat value="1.1B" label="At risk" />
+          <div className="w-px h-8 bg-border" />
+          <Stat value="85dB" label="WHO limit" gold />
+          <div className="w-px h-8 bg-border" />
+          <Stat value="0%" label="Recovery" />
+        </motion.div>
+      </motion.div>
+
+      <motion.p
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 1.2 }}
+        className="absolute bottom-24 md:bottom-8 text-muted-foreground/40 text-[10px] sm:text-xs text-center px-4 max-w-md font-mono"
+      >
+        Awareness tool only. Not a medical device.
+      </motion.p>
+    </div>
+  );
+}
+
+function Stat({ value, label, gold }: { value: string; label: string; gold?: boolean }) {
+  return (
+    <div className="text-center">
+      <p className={`text-lg sm:text-xl font-mono font-bold ${gold ? 'text-primary' : 'text-foreground'}`}>{value}</p>
+      <p className="text-muted-foreground text-[10px] sm:text-xs mt-1 font-mono uppercase tracking-wider">{label}</p>
     </div>
   );
 }

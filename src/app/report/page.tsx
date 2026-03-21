@@ -1,0 +1,121 @@
+'use client';
+
+import { useDecibelStore } from '@/lib/store/decibel-store';
+import { AnalysisInput, HearingReport } from '@/lib/types';
+import { getFrequencyProfile } from '@/lib/audio/analyzer';
+import { getAnalyserNode } from '@/lib/audio/capture';
+import { generatePDFReport } from '@/lib/pdf';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import RiskReport from '@/components/RiskReport';
+import SessionHistory from '@/components/SessionHistory';
+import Link from 'next/link';
+import { motion } from 'framer-motion';
+
+export default function ReportPage() {
+  const store = useDecibelStore();
+  const { session, report, isGeneratingReport, setReport, setIsGeneratingReport } = store;
+
+  const handleGenerateReport = async () => {
+    if (!session) return;
+    setIsGeneratingReport(true);
+    try {
+      const dur = session.endTime ? (session.endTime - session.startTime) / 60000 : 0;
+      const analyser = getAnalyserNode();
+      const fp = analyser ? getFrequencyProfile(analyser) : 'unknown';
+      const input: AnalysisInput = {
+        session_duration_minutes: Math.round(dur * 10) / 10,
+        avg_db: Math.round(session.avgDb * 10) / 10,
+        max_db: Math.round(session.maxDb * 10) / 10,
+        min_db: Math.round((session.minDb || 0) * 10) / 10,
+        time_above_85db_minutes: Math.round((session.timeAbove85 / 60) * 10) / 10,
+        time_above_100db_minutes: Math.round((session.timeAbove100 / 60) * 10) / 10,
+        noise_dose_percent: Math.round(session.noiseDosePercent * 10) / 10,
+        frequency_profile: fp, location_type: 'indoor_event', reading_count: session.readings.length,
+      };
+      const res = await fetch('/api/analyze', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(input) });
+      if (!res.ok) throw new Error(`${res.statusText}`);
+      setReport(await res.json() as HearingReport);
+    } catch {
+      setReport({
+        summary: 'Unable to generate AI analysis. Check API key and try again.',
+        risk_level: 'moderate', hearing_score: 0,
+        top_3_recommendations: ['Set ANTHROPIC_API_KEY in .env.local', 'Check network', 'Retry'],
+        long_term_projection: 'Unavailable.', comparison: 'Unavailable.', action_items: [],
+        daily_budget_used: `${Math.round(session.noiseDosePercent)}%`, safe_time_remaining: '--',
+      });
+    } finally { setIsGeneratingReport(false); }
+  };
+
+  const handleDownloadPDF = () => {
+    if (!report || !session) return;
+    generatePDFReport(report, session).save(`decibel-report-${new Date().toISOString().slice(0, 10)}.pdf`);
+  };
+
+  if (!session) {
+    return (
+      <div className="container py-4 sm:py-6 max-w-3xl">
+        <div className="flex flex-col items-center justify-center min-h-[40dvh] px-4 text-center">
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="max-w-sm">
+            <p className="text-muted-foreground/30 text-6xl font-mono mb-6">&mdash;</p>
+            <h2 className="text-lg font-mono font-bold text-foreground uppercase tracking-wider mb-2">No Active Session</h2>
+            <p className="text-muted-foreground text-sm mb-8">Run a monitoring session or select one from history below.</p>
+            <Link href="/monitor">
+              <Button className="gold-shimmer-bg text-black font-mono text-xs font-bold border-0">Start Monitoring</Button>
+            </Link>
+          </motion.div>
+        </div>
+        <SessionHistory />
+      </div>
+    );
+  }
+
+  const dur = session.endTime ? Math.round((session.endTime - session.startTime) / 60000) : 0;
+
+  return (
+    <div className="container py-4 sm:py-6 max-w-3xl">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6 md:mb-8">
+        <div>
+          <h1 className="text-lg sm:text-xl font-mono font-bold tracking-wider text-foreground uppercase">Report</h1>
+          <p className="text-muted-foreground text-xs font-mono mt-0.5">AI hearing risk analysis</p>
+        </div>
+        <div className="flex items-center gap-2">
+          {report && <Button variant="ghost" size="sm" onClick={handleDownloadPDF} className="font-mono text-xs text-muted-foreground">PDF</Button>}
+          {!report && !isGeneratingReport && (
+            <Button size="sm" onClick={handleGenerateReport} className="gold-shimmer-bg text-black font-mono text-xs font-bold border-0">Generate</Button>
+          )}
+        </div>
+      </div>
+
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
+        <MiniStat label="Duration" value={`${dur}m`} />
+        <MiniStat label="Avg" value={`${Math.round(session.avgDb)}`} unit="dB" />
+        <MiniStat label="Peak" value={`${Math.round(session.maxDb)}`} unit="dB" />
+        <MiniStat label="Dose" value={`${Math.round(session.noiseDosePercent)}%`} />
+      </div>
+
+      <RiskReport />
+
+      {report && (
+        <p className="text-center text-muted-foreground/30 text-[9px] mt-8 pb-4 font-mono tracking-wider">
+          AI-GENERATED FOR AWARENESS — NOT MEDICAL ADVICE
+        </p>
+      )}
+
+      <SessionHistory />
+    </div>
+  );
+}
+
+function MiniStat({ label, value, unit }: { label: string; value: string; unit?: string }) {
+  return (
+    <Card>
+      <CardContent className="p-3 text-center">
+        <p className="text-muted-foreground/50 text-[9px] font-mono uppercase tracking-[0.15em] mb-1">{label}</p>
+        <p className="text-sm font-mono font-bold text-foreground">
+          {value}{unit && <span className="text-muted-foreground text-[9px] ml-0.5">{unit}</span>}
+        </p>
+      </CardContent>
+    </Card>
+  );
+}

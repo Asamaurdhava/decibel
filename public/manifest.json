@@ -1,0 +1,22 @@
+{
+  "name": "Decibel — Hearing Health Monitor",
+  "short_name": "Decibel",
+  "description": "Real-time sound level monitoring and hearing risk assessment",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#050505",
+  "theme_color": "#FFAA00",
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

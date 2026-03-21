@@ -1,0 +1,162 @@
+'use client';
+
+import { useRef, useEffect, useState } from 'react';
+import { useDecibelStore } from '@/lib/store/decibel-store';
+import { pinsToGeoJSON, heatmapLayerConfig, circleLayerConfig } from '@/lib/map/heatmap';
+import { NoiseMapPin, getZone, getZoneColor } from '@/lib/types';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Card, CardContent } from '@/components/ui/card';
+
+const MAPBOX_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
+
+export default function NoiseMap() {
+  const mapContainerRef = useRef<HTMLDivElement>(null);
+  const mapRef = useRef<mapboxgl.Map | null>(null);
+  const { mapPins, userLocation, setUserLocation, addMapPin, currentDb, isMonitoring } = useDecibelStore();
+  const [mapLoaded, setMapLoaded] = useState(false);
+  const [selectedPin, setSelectedPin] = useState<NoiseMapPin | null>(null);
+
+  useEffect(() => {
+    if (!navigator.geolocation) return;
+    navigator.geolocation.getCurrentPosition(
+      (pos) => setUserLocation({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
+      () => setUserLocation({ lat: 33.4242, lng: -111.9281 }),
+      { enableHighAccuracy: true }
+    );
+  }, [setUserLocation]);
+
+  useEffect(() => {
+    if (!MAPBOX_TOKEN || !mapContainerRef.current || !userLocation) return;
+    if (mapRef.current) return;
+
+    const initMap = async () => {
+      const mapboxgl = (await import('mapbox-gl')).default;
+
+      mapboxgl.accessToken = MAPBOX_TOKEN;
+
+      const map = new mapboxgl.Map({
+        container: mapContainerRef.current!,
+        style: 'mapbox://styles/mapbox/dark-v11',
+        center: [userLocation.lng, userLocation.lat],
+        zoom: 15,
+        attributionControl: false,
+      });
+
+      map.addControl(new mapboxgl.NavigationControl({ showCompass: false }), 'top-right');
+
+      const geolocate = new mapboxgl.GeolocateControl({
+        positionOptions: { enableHighAccuracy: true },
+        trackUserLocation: true,
+        showUserLocation: true,
+      });
+      map.addControl(geolocate, 'top-right');
+
+      map.on('load', () => {
+        // Auto-trigger geolocation
+        geolocate.trigger();
+
+        map.addSource('noise-data', { type: 'geojson', data: pinsToGeoJSON(mapPins) });
+        map.addLayer(heatmapLayerConfig as mapboxgl.AnyLayer);
+        map.addLayer({ ...circleLayerConfig, minzoom: 14 } as mapboxgl.AnyLayer);
+
+        map.on('click', 'noise-points', (e) => {
+          if (e.features && e.features[0]) {
+            const props = e.features[0].properties;
+            if (props) {
+              setSelectedPin({ id: '', lat: 0, lng: 0, avgDb: props.avgDb, peakDb: props.peakDb, zone: props.zone, timestamp: props.timestamp });
+            }
+          }
+        });
+        map.on('mouseenter', 'noise-points', () => { map.getCanvas().style.cursor = 'pointer'; });
+        map.on('mouseleave', 'noise-points', () => { map.getCanvas().style.cursor = ''; });
+        setMapLoaded(true);
+      });
+
+      mapRef.current = map;
+    };
+
+    initMap();
+    return () => { if (mapRef.current) { mapRef.current.remove(); mapRef.current = null; } };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userLocation]);
+
+  useEffect(() => {
+    if (!mapRef.current || !mapLoaded) return;
+    const source = mapRef.current.getSource('noise-data') as mapboxgl.GeoJSONSource;
+    if (source) source.setData(pinsToGeoJSON(mapPins));
+  }, [mapPins, mapLoaded]);
+
+  const handleDropPin = () => {
+    if (!userLocation || !isMonitoring) return;
+    const zone = getZone(currentDb);
+    const pin: NoiseMapPin = {
+      id: crypto.randomUUID(), lat: userLocation.lat, lng: userLocation.lng,
+      avgDb: currentDb, peakDb: currentDb, timestamp: Date.now(), zone,
+    };
+    addMapPin(pin);
+  };
+
+  if (!MAPBOX_TOKEN) {
+    return (
+      <Card className="flex flex-col items-center justify-center h-full min-h-[300px] sm:min-h-[400px]">
+        <CardContent className="text-center p-6">
+          <svg className="w-12 h-12 sm:w-16 sm:h-16 text-muted-foreground/30 mx-auto mb-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5}>
+            <polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6" />
+            <line x1="8" y1="2" x2="8" y2="18" /><line x1="16" y1="6" x2="16" y2="22" />
+          </svg>
+          <h3 className="text-base sm:text-lg font-semibold text-foreground mb-2">Map Not Configured</h3>
+          <p className="text-muted-foreground text-sm max-w-sm">
+            Add NEXT_PUBLIC_MAPBOX_TOKEN to your .env.local file to enable the community noise map.
+          </p>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <div className="relative w-full h-full min-h-[300px] sm:min-h-[400px] md:min-h-[500px] rounded-lg overflow-hidden border border-border">
+      <div ref={mapContainerRef} className="absolute inset-0" />
+
+      {/* Loading state while Mapbox initializes */}
+      {!mapLoaded && (
+        <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-card">
+          <div className="w-6 h-6 border border-primary/30 border-t-primary rounded-full animate-spin mb-3" />
+          <p className="text-muted-foreground text-xs font-mono">Loading map...</p>
+        </div>
+      )}
+
+      <div className="absolute bottom-3 sm:bottom-4 left-3 sm:left-4 right-3 sm:right-4 flex items-end justify-between gap-3 z-10">
+        <Button variant="outline" size="sm" onClick={handleDropPin} disabled={!isMonitoring}
+          className="bg-background/90 backdrop-blur-sm">
+          Drop Pin ({Math.round(currentDb)} dB)
+        </Button>
+        <Badge variant="secondary" className="bg-background/90 backdrop-blur-sm font-mono text-xs">
+          {mapPins.length} pin{mapPins.length !== 1 ? 's' : ''}
+        </Badge>
+      </div>
+
+      {selectedPin && (
+        <div className="absolute top-3 sm:top-4 left-3 sm:left-4 right-3 sm:right-4 z-10">
+          <Card className="bg-background/90 backdrop-blur-sm">
+            <CardContent className="p-3 sm:p-4 flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium" style={{ color: getZoneColor(selectedPin.zone) }}>
+                  {Math.round(selectedPin.avgDb)} dB — {selectedPin.zone.toUpperCase()}
+                </p>
+                <p className="text-muted-foreground text-xs mt-0.5">
+                  {new Date(selectedPin.timestamp).toLocaleTimeString()}
+                </p>
+              </div>
+              <button onClick={() => setSelectedPin(null)} className="text-muted-foreground hover:text-foreground transition-colors p-1">
+                <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+                  <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+                </svg>
+              </button>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+    </div>
+  );
+}
