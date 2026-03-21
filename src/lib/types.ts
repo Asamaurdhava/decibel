@@ -190,6 +190,8 @@ export interface DecibelState {
   setNoiseComparison: (comparison: NoiseComparison | null) => void;
   setSessionSummary: (summary: SessionSummary | null) => void;
   setIsGeneratingSummary: (isGenerating: boolean) => void;
+  removeSession: (id: string) => void;
+  clearCurrentReport: () => void;
   resetSession: () => void;
 }
 

@@ -14,7 +14,7 @@ import { motion } from 'framer-motion';
 
 export default function ReportPage() {
   const store = useDecibelStore();
-  const { session, report, isGeneratingReport, setReport, setIsGeneratingReport } = store;
+  const { session, report, isGeneratingReport, setReport, setIsGeneratingReport, clearCurrentReport } = store;
 
   const handleGenerateReport = async () => {
     if (!session) return;
@@ -52,6 +52,11 @@ export default function ReportPage() {
     generatePDFReport(report, session).save(`decibel-report-${new Date().toISOString().slice(0, 10)}.pdf`);
   };
 
+  const handleBack = () => {
+    clearCurrentReport();
+  };
+
+  // No active session — show empty state + history
   if (!session) {
     return (
       <div className="container py-4 sm:py-6 max-w-3xl">
@@ -75,9 +80,21 @@ export default function ReportPage() {
   return (
     <div className="container py-4 sm:py-6 max-w-3xl">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6 md:mb-8">
-        <div>
-          <h1 className="text-lg sm:text-xl font-mono font-bold tracking-wider text-foreground uppercase">Report</h1>
-          <p className="text-muted-foreground text-xs font-mono mt-0.5">AI hearing risk analysis</p>
+        <div className="flex items-center gap-3">
+          {/* Back button */}
+          <button
+            onClick={handleBack}
+            className="shrink-0 w-8 h-8 rounded-full border border-border flex items-center justify-center text-muted-foreground hover:text-foreground hover:border-foreground/30 transition-colors"
+            aria-label="Back to reports"
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M19 12H5" /><path d="M12 19l-7-7 7-7" />
+            </svg>
+          </button>
+          <div>
+            <h1 className="text-lg sm:text-xl font-mono font-bold tracking-wider text-foreground uppercase">Report</h1>
+            <p className="text-muted-foreground text-xs font-mono mt-0.5">AI hearing risk analysis</p>
+          </div>
         </div>
         <div className="flex items-center gap-2">
           {report && <Button variant="ghost" size="sm" onClick={handleDownloadPDF} className="font-mono text-xs text-muted-foreground">PDF</Button>}

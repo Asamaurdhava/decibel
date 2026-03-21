@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { DecibelState, ExposureReading, ExposureSession, getZone } from '@/lib/types';
-import { saveSession } from '@/lib/db/local';
-import { savePinToCloud, saveSessionToCloud } from '@/lib/db/supabase';
+import { saveSession, deleteSession as deleteLocalSession } from '@/lib/db/local';
+import { savePinToCloud, saveSessionToCloud, deleteSessionFromCloud } from '@/lib/db/supabase';
 import { useToast } from '@/components/Toast';
 
 export const useDecibelStore = create<DecibelState>((set, get) => ({
@@ -197,6 +197,21 @@ export const useDecibelStore = create<DecibelState>((set, get) => ({
       isGeneratingReport: false,
       sessionSummary: null,
     });
+  },
+
+  removeSession: (id: string) => {
+    const state = get();
+    set({
+      pastSessions: state.pastSessions.filter(s => s.id !== id),
+      // If the removed session is the currently viewed one, clear it
+      ...(state.session?.id === id ? { session: null, report: null } : {}),
+    });
+    deleteLocalSession(id).catch(() => {});
+    deleteSessionFromCloud(id).catch(() => {});
+  },
+
+  clearCurrentReport: () => {
+    set({ session: null, report: null, isGeneratingReport: false });
   },
 
   resetSession: () => {

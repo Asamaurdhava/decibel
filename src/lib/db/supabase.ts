@@ -59,6 +59,11 @@ export async function saveSessionToCloud(session: ExposureSession): Promise<void
   if (error) throw error;
 }
 
+export async function deleteSessionFromCloud(id: string): Promise<void> {
+  const { error } = await supabase.from('sessions').delete().eq('id', id);
+  if (error) throw error;
+}
+
 export async function getCloudSessions(): Promise<ExposureSession[]> {
   const { data, error } = await supabase
     .from('sessions')
