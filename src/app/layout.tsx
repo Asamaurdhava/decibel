@@ -3,6 +3,7 @@ import "./globals.css";
 import Navbar from "@/components/Navbar";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import Toast from "@/components/Toast";
+import AudioMonitorProvider from "@/components/AudioMonitorProvider";
 
 export const metadata: Metadata = {
   title: "Decibel — Your Ears Don't Get Second Chances",
@@ -40,6 +41,7 @@ export default function RootLayout({
             </ErrorBoundary>
           </main>
           <Toast />
+          <AudioMonitorProvider />
         </div>
       </body>
     </html>
