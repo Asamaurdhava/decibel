@@ -5,6 +5,7 @@ import { motion } from 'framer-motion';
 import BorderGlow from '@/components/ui/border-glow';
 import LightRays from '@/components/ui/light-rays';
 import FuzzyText from '@/components/ui/fuzzy-text';
+import TextType from '@/components/ui/text-type';
 
 export default function Home() {
   return (
@@ -55,13 +56,43 @@ export default function Home() {
         </p>
 
         {/* Divider */}
-        <div className="w-16 h-px bg-gradient-to-r from-transparent via-white/30 to-transparent mx-auto mb-8 sm:mb-10" />
+        <div className="w-16 h-px bg-gradient-to-r from-transparent via-white/30 to-transparent mx-auto mb-6 sm:mb-8" />
 
-        {/* Description */}
-        <p className="text-muted-foreground text-base sm:text-lg leading-relaxed mb-10 sm:mb-12 max-w-lg mx-auto">
-          Turn your phone into a sound level monitor. Track noise exposure in real time.
-          Get a personalized hearing risk profile backed by WHO safety thresholds.
+        {/* WHO Source */}
+        <p className="text-muted-foreground/60 text-[10px] sm:text-xs font-mono tracking-wider mb-4">
+          backed by{' '}
+          <a
+            href="https://www.who.int/news-room/fact-sheets/detail/deafness-and-hearing-loss"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-primary/80 hover:text-primary underline underline-offset-2 transition-colors"
+          >
+            World Health Organization
+          </a>
         </p>
+
+        {/* Typing WHO facts */}
+        <div className="h-12 sm:h-14 flex items-center justify-center mb-10 sm:mb-12">
+          <TextType
+            text={[
+              "1.1 billion young people risk hearing loss",
+              "85 dB for 8 hours causes permanent damage",
+              "A nightclub hits 100–112 dB",
+              "Earbuds at 70% volume reach 85 dB",
+              "Every 3 dB doubles the damage rate",
+              "Noise-induced hearing loss is irreversible",
+              "A subway platform averages 95 dB",
+            ]}
+            typingSpeed={40}
+            deletingSpeed={25}
+            pauseDuration={2500}
+            showCursor
+            cursorCharacter="_"
+            cursorBlinkDuration={0.5}
+            loop
+            className="text-muted-foreground text-sm sm:text-base font-mono tracking-wide"
+          />
+        </div>
 
         {/* CTA */}
         <Link href="/monitor">
@@ -90,11 +121,26 @@ export default function Home() {
           transition={{ delay: 0.8 }}
           className="mt-16 sm:mt-20 flex items-center justify-center gap-8 sm:gap-12"
         >
-          <Stat value="1.1B" label="At risk" />
+          <div className="text-center">
+            <div className="text-lg sm:text-xl font-mono font-bold text-foreground h-7 flex items-center justify-center">
+              <TextType text={["1.1B"]} typingSpeed={200} initialDelay={1000} loop={false} showCursor cursorCharacter="_" cursorBlinkDuration={0.4} className="inline" />
+            </div>
+            <p className="text-muted-foreground text-[10px] sm:text-xs mt-1 font-mono uppercase tracking-wider">At risk</p>
+          </div>
           <div className="w-px h-8 bg-border" />
-          <Stat value="85dB" label="WHO limit" gold />
+          <div className="text-center">
+            <div className="text-lg sm:text-xl font-mono font-bold text-primary h-7 flex items-center justify-center">
+              <TextType text={["85dB"]} typingSpeed={200} initialDelay={2000} loop={false} showCursor cursorCharacter="_" cursorBlinkDuration={0.4} className="inline" />
+            </div>
+            <p className="text-muted-foreground text-[10px] sm:text-xs mt-1 font-mono uppercase tracking-wider">WHO limit</p>
+          </div>
           <div className="w-px h-8 bg-border" />
-          <Stat value="0%" label="Recovery" />
+          <div className="text-center">
+            <div className="text-lg sm:text-xl font-mono font-bold text-foreground h-7 flex items-center justify-center">
+              <TextType text={["0%"]} typingSpeed={200} initialDelay={3000} loop={false} showCursor cursorCharacter="_" cursorBlinkDuration={0.4} className="inline" />
+            </div>
+            <p className="text-muted-foreground text-[10px] sm:text-xs mt-1 font-mono uppercase tracking-wider">Recovery</p>
+          </div>
         </motion.div>
       </motion.div>
 
@@ -110,11 +156,3 @@ export default function Home() {
   );
 }
 
-function Stat({ value, label, gold }: { value: string; label: string; gold?: boolean }) {
-  return (
-    <div className="text-center">
-      <p className={`text-lg sm:text-xl font-mono font-bold ${gold ? 'text-primary' : 'text-foreground'}`}>{value}</p>
-      <p className="text-muted-foreground text-[10px] sm:text-xs mt-1 font-mono uppercase tracking-wider">{label}</p>
-    </div>
-  );
-}
