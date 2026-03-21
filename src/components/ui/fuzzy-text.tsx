@@ -64,6 +64,7 @@ const FuzzyText: React.FC<FuzzyTextProps> = ({
         fontFamily === 'inherit' ? window.getComputedStyle(canvas).fontFamily || 'sans-serif' : fontFamily;
 
       const fontSizeStr = typeof fontSize === 'number' ? `${fontSize}px` : fontSize;
+      // fontString uses raw value for font loading, resolvedFontStr used later for canvas
       const fontString = `${fontWeight} ${fontSizeStr} ${computedFontFamily}`;
 
       try {
@@ -79,11 +80,16 @@ const FuzzyText: React.FC<FuzzyTextProps> = ({
       } else {
         const temp = document.createElement('span');
         temp.style.fontSize = fontSize;
+        temp.style.position = 'absolute';
+        temp.style.visibility = 'hidden';
         document.body.appendChild(temp);
         const computedSize = window.getComputedStyle(temp).fontSize;
         numericFontSize = parseFloat(computedSize);
         document.body.removeChild(temp);
       }
+
+      // Use resolved pixel value for canvas font — canvas doesn't understand clamp()
+      const resolvedFontStr = `${numericFontSize}px`;
 
       const text = React.Children.toArray(children).join('');
 
@@ -91,7 +97,7 @@ const FuzzyText: React.FC<FuzzyTextProps> = ({
       const offCtx = offscreen.getContext('2d');
       if (!offCtx) return;
 
-      offCtx.font = `${fontWeight} ${fontSizeStr} ${computedFontFamily}`;
+      offCtx.font = `${fontWeight} ${resolvedFontStr} ${computedFontFamily}`;
       offCtx.textBaseline = 'alphabetic';
 
       let totalWidth = 0;
@@ -120,7 +126,7 @@ const FuzzyText: React.FC<FuzzyTextProps> = ({
       offscreen.height = tightHeight;
 
       const xOffset = extraWidthBuffer / 2;
-      offCtx.font = `${fontWeight} ${fontSizeStr} ${computedFontFamily}`;
+      offCtx.font = `${fontWeight} ${resolvedFontStr} ${computedFontFamily}`;
       offCtx.textBaseline = 'alphabetic';
 
       if (gradient && Array.isArray(gradient) && gradient.length >= 2) {
