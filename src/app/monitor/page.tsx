@@ -15,7 +15,6 @@ import FrequencySpectrum from '@/components/FrequencySpectrum';
 import ExposureTimeline from '@/components/ExposureTimeline';
 import NoiseDoseGauge from '@/components/NoiseDoseGauge';
 import DangerAlert from '@/components/DangerAlert';
-import CalibrationModal from '@/components/CalibrationModal';
 import ContextualTip from '@/components/ContextualTip';
 import NoiseComparisonDisplay from '@/components/NoiseComparisonDisplay';
 import SessionSummaryCard from '@/components/SessionSummaryCard';
@@ -30,9 +29,7 @@ export default function MonitorPage() {
   const audioNodesRef = useRef<AudioNodes | null>(null);
   const animationRef = useRef<number>(0);
   const lastReadingRef = useRef<number>(0);
-  const [showCalibration, setShowCalibration] = useState(false);
   const [micError, setMicError] = useState<string | null>(null);
-  const [currentDbfs, setCurrentDbfs] = useState(-60);
 
   // Claude feature refs — track timing without re-renders
   const lastZoneRef = useRef<DangerZone>('safe');
@@ -133,8 +130,6 @@ export default function MonitorPage() {
     const db = getCurrentdB(nodes.analyserNode);
     const waveform = getWaveformData(nodes.analyserNode);
     const frequency = getFrequencyData(nodes.analyserNode);
-    setCurrentDbfs(db - 94);
-
     store.updateAudioData({ currentDb: db, waveformData: waveform, frequencyData: frequency });
 
     const now = Date.now();
@@ -194,7 +189,6 @@ export default function MonitorPage() {
   return (
     <div className="min-h-[100dvh] md:min-h-0">
       <DangerAlert />
-      <CalibrationModal isOpen={showCalibration} onClose={() => setShowCalibration(false)} currentDbfs={currentDbfs} />
 
       <div className="container py-4 sm:py-6">
         {/* Header */}
@@ -204,9 +198,6 @@ export default function MonitorPage() {
             <p className="text-muted-foreground text-xs font-mono mt-0.5">Real-time noise measurement</p>
           </div>
           <div className="flex items-center gap-2">
-            <Button variant="ghost" size="sm" onClick={() => setShowCalibration(true)} className="text-muted-foreground font-mono text-xs">
-              Calibrate
-            </Button>
             {store.isMonitoring ? (
               <Button variant="outline" size="sm" onClick={handleStop} className="border-red-500/30 text-red-400 hover:bg-red-500/10 hover:text-red-400 font-mono text-xs">
                 Stop
