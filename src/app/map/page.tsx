@@ -21,14 +21,14 @@ export default function MapPage() {
         </div>
         {mapPins.length > 0 && (
           <div className="flex items-center gap-2 flex-wrap">
-            <Badge variant="outline" className="font-mono text-[10px]">Avg {avgDb} dB</Badge>
-            <Badge variant="outline" className="font-mono text-[10px]">Peak {peakDb} dB</Badge>
-            {dangerPins > 0 && <Badge variant="danger" className="font-mono text-[10px]">{dangerPins} danger</Badge>}
+            <Badge variant="outline" className="font-mono text-[10px] sm:text-xs">Avg {avgDb} dB</Badge>
+            <Badge variant="outline" className="font-mono text-[10px] sm:text-xs">Peak {peakDb} dB</Badge>
+            {dangerPins > 0 && <Badge variant="danger" className="font-mono text-[10px] sm:text-xs">{dangerPins} danger</Badge>}
           </div>
         )}
       </div>
 
-      <div className="h-[calc(100dvh-200px)] sm:h-[calc(100dvh-220px)] md:h-[calc(100dvh-160px)] min-h-[300px]">
+      <div className="h-[calc(100dvh-280px)] sm:h-[calc(100dvh-240px)] md:h-[calc(100dvh-160px)] min-h-[300px]">
         <NoiseMap />
       </div>
 

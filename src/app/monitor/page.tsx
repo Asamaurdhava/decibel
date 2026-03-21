@@ -252,7 +252,7 @@ export default function MonitorPage() {
                 {store.isMonitoring && (
                   <div className="mt-2 text-center">
                     <p className="text-muted-foreground/50 text-[9px] font-mono uppercase tracking-[0.2em] mb-1">Safe time left</p>
-                    <p className="text-sm font-mono font-bold text-foreground">{formatSafeTime(safeTimeLeft)}</p>
+                    <p className="text-xs sm:text-sm font-mono font-bold text-foreground">{formatSafeTime(safeTimeLeft)}</p>
                   </div>
                 )}
               </CardContent>

@@ -126,7 +126,7 @@ export default function NoiseMap() {
         </div>
       )}
 
-      <div className="absolute bottom-3 sm:bottom-4 left-3 sm:left-4 right-3 sm:right-4 flex items-end justify-between gap-3 z-10">
+      <div className="absolute bottom-4 sm:bottom-4 left-3 sm:left-4 right-3 sm:right-4 flex items-end justify-between gap-3 z-10">
         <Button variant="outline" size="sm" onClick={handleDropPin} disabled={!isMonitoring}
           className="bg-background/90 backdrop-blur-sm">
           Drop Pin ({Math.round(currentDb)} dB)
