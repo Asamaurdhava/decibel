@@ -244,13 +244,18 @@ export const useDecibelStore = create<DecibelState>()(persist((set, get) => ({
     const existing = get().pastSessions;
     const existingMap = new Map(existing.map(s => [s.id, s]));
 
-    // Merge: prefer the version that has a report
+    // Merge: combine best fields from local + cloud
     const merged = sessions
       .filter(s => !deleted.has(s.id))
       .map(s => {
         const prev = existingMap.get(s.id);
-        if (prev?.report && !s.report) return prev; // keep existing with report
-        return s;
+        if (!prev) return s;
+        // Merge: take the best of both (cloud name, local report, etc.)
+        return {
+          ...s,
+          name: s.name || prev.name,
+          report: s.report || prev.report,
+        };
       });
 
     // Also keep any existing sessions not in the DB list (e.g. just created)

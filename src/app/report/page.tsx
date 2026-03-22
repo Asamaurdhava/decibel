@@ -150,9 +150,11 @@ export default function ReportPage() {
         <MiniStat label="Dose" value={`${Math.round(session.noiseDosePercent)}%`} />
       </div>
 
-      {/* Linked noise pins */}
+      <RiskReport />
+
+      {/* Linked noise pins — after report */}
       {sessionPins.length > 0 && (
-        <Card className="mb-6">
+        <Card className="mt-6">
           <CardContent className="p-3 sm:p-4">
             <p className="text-muted-foreground/50 text-[9px] font-mono uppercase tracking-[0.15em] mb-3">
               Noise measurements · {sessionPins.length} pin{sessionPins.length !== 1 ? 's' : ''}
@@ -175,8 +177,6 @@ export default function ReportPage() {
           </CardContent>
         </Card>
       )}
-
-      <RiskReport />
 
       {report && (
         <p className="text-center text-muted-foreground/30 text-[9px] mt-8 pb-4 font-mono tracking-wider">
