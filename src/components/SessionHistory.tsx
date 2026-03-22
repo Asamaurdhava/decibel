@@ -36,26 +36,30 @@ export default function SessionHistory() {
 
   const handleQuickPDF = async (e: React.MouseEvent, s: ExposureSession) => {
     e.stopPropagation();
-    // Generate a minimal report for PDF without Claude
-    const dur = s.endTime ? Math.round((s.endTime - s.startTime) / 60000) : 0;
-    const dose = Math.round(s.noiseDosePercent);
-    const riskLevel = dose >= 80 ? 'high' : dose >= 40 ? 'moderate' : 'low';
-    const fallbackReport: HearingReport = {
-      summary: `Session of ${dur} minutes with average ${Math.round(s.avgDb)} dB and peak ${Math.round(s.maxDb)} dB.`,
-      risk_level: riskLevel,
-      hearing_score: Math.max(0, 100 - dose),
-      top_3_recommendations: [
-        s.avgDb >= 85 ? 'Reduce exposure duration in loud environments' : 'Current levels are within safe range',
-        'Take breaks every 60 minutes in noisy settings',
-        'Consider hearing protection above 85 dB',
-      ],
-      long_term_projection: `Based on this session: ${dose}% of daily safe noise budget used.`,
-      comparison: `Average of ${Math.round(s.avgDb)} dB with peak of ${Math.round(s.maxDb)} dB.`,
-      action_items: [],
-      daily_budget_used: `${dose}%`,
-      safe_time_remaining: '--',
-    };
-    generatePDFReport(fallbackReport, s).save(`decibel-report-${new Date(s.startTime).toISOString().slice(0, 10)}.pdf`);
+
+    // Use Claude-generated report if available, otherwise fallback
+    const report: HearingReport = s.report || (() => {
+      const dur = s.endTime ? Math.round((s.endTime - s.startTime) / 60000) : 0;
+      const dose = Math.round(s.noiseDosePercent);
+      const riskLevel = dose >= 80 ? 'high' : dose >= 40 ? 'moderate' : 'low';
+      return {
+        summary: `Session of ${dur} minutes with average ${Math.round(s.avgDb)} dB and peak ${Math.round(s.maxDb)} dB.`,
+        risk_level: riskLevel,
+        hearing_score: Math.max(0, 100 - dose),
+        top_3_recommendations: [
+          s.avgDb >= 85 ? 'Reduce exposure duration in loud environments' : 'Current levels are within safe range',
+          'Take breaks every 60 minutes in noisy settings',
+          'Consider hearing protection above 85 dB',
+        ],
+        long_term_projection: `Based on this session: ${dose}% of daily safe noise budget used.`,
+        comparison: `Average of ${Math.round(s.avgDb)} dB with peak of ${Math.round(s.maxDb)} dB.`,
+        action_items: [],
+        daily_budget_used: `${dose}%`,
+        safe_time_remaining: '--',
+      };
+    })();
+
+    generatePDFReport(report, s).save(`decibel-report-${new Date(s.startTime).toISOString().slice(0, 10)}.pdf`);
   };
 
   return (
