@@ -26,6 +26,19 @@ export default function ReportPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Load linked pins for current session
+  useEffect(() => {
+    if (session?.id) {
+      const storePins = useDecibelStore.getState().mapPins.filter(p => p.sessionId === session.id);
+      setSessionPins(storePins);
+      getSessionPins(session.id).then(cloudPins => {
+        if (cloudPins.length > storePins.length) setSessionPins(cloudPins);
+      }).catch(() => {});
+    } else {
+      setSessionPins([]);
+    }
+  }, [session?.id]);
+
   const handleGenerateReport = async () => {
     if (!session) return;
     setIsGeneratingReport(true);
@@ -86,17 +99,6 @@ export default function ReportPage() {
   }
 
   const dur = session.endTime ? Math.round((session.endTime - session.startTime) / 60000) : 0;
-
-  useEffect(() => {
-    if (session?.id) {
-      // Load pins from store first (immediate), then from Supabase
-      const storePins = useDecibelStore.getState().mapPins.filter(p => p.sessionId === session.id);
-      setSessionPins(storePins);
-      getSessionPins(session.id).then(cloudPins => {
-        if (cloudPins.length > storePins.length) setSessionPins(cloudPins);
-      }).catch(() => {});
-    }
-  }, [session?.id]);
 
   return (
     <div className="container py-4 sm:py-6 max-w-3xl">
