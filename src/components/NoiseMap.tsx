@@ -82,6 +82,9 @@ export default function NoiseMap() {
       });
 
       map.on('load', () => {
+        // Ensure map fills container correctly
+        map.resize();
+
         // Auto-trigger geolocation
         geolocate.trigger();
 
