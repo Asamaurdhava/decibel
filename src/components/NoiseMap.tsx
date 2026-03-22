@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef, useEffect, useState, useCallback } from 'react';
+import { useRef, useEffect, useState } from 'react';
 import { useDecibelStore } from '@/lib/store/decibel-store';
 import { pinsToGeoJSON, heatmapLayerConfig, circleLayerConfig } from '@/lib/map/heatmap';
 import { NoiseMapPin, getZone, getZoneColor } from '@/lib/types';
@@ -16,8 +16,6 @@ export default function NoiseMap() {
   const mapRef = useRef<mapboxgl.Map | null>(null);
   const mapPins = useDecibelStore((s) => s.mapPins);
   const userLocation = useDecibelStore((s) => s.userLocation);
-  const setUserLocation = useDecibelStore((s) => s.setUserLocation);
-  const addMapPin = useDecibelStore((s) => s.addMapPin);
   const [mapLoaded, setMapLoaded] = useState(false);
   const [selectedPin, setSelectedPin] = useState<NoiseMapPin | null>(null);
   const [buttonLabel, setButtonLabel] = useState({ db: 0, active: false });
@@ -41,11 +39,11 @@ export default function NoiseMap() {
   useEffect(() => {
     if (!navigator.geolocation) return;
     navigator.geolocation.getCurrentPosition(
-      (pos) => setUserLocation({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
-      () => setUserLocation({ lat: 33.4242, lng: -111.9281 }),
+      (pos) => useDecibelStore.getState().setUserLocation({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
+      () => useDecibelStore.getState().setUserLocation({ lat: 33.4242, lng: -111.9281 }),
       { enableHighAccuracy: true }
     );
-  }, [setUserLocation]);
+  }, []);
 
   useEffect(() => {
     if (!MAPBOX_TOKEN || !mapContainerRef.current || !userLocation) return;
@@ -136,7 +134,7 @@ export default function NoiseMap() {
       id: crypto.randomUUID(), lat: loc.lat, lng: loc.lng,
       avgDb: currentDb, peakDb: currentDb, timestamp: Date.now(), zone,
     };
-    addMapPin(pin);
+    useDecibelStore.getState().addMapPin(pin);
   };
 
   if (!MAPBOX_TOKEN) {
