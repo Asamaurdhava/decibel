@@ -135,6 +135,7 @@ export default function NoiseMap() {
                 peakDb: props.peakDb,
                 zone: props.zone,
                 timestamp: props.timestamp,
+                sessionId: props.sessionId || undefined,
               });
             }
           }
@@ -246,27 +247,33 @@ export default function NoiseMap() {
         </Badge>
       </div>
 
-      {selectedPin && (
-        <div className="absolute top-3 sm:top-4 left-3 sm:left-4 right-3 sm:right-4 z-10">
-          <Card className="bg-background/90 backdrop-blur-sm">
-            <CardContent className="p-3 sm:p-4 flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium" style={{ color: getZoneColor(selectedPin.zone) }}>
-                  {Math.round(selectedPin.avgDb)} dB — {selectedPin.zone.toUpperCase()}
-                </p>
-                <p className="text-muted-foreground text-xs mt-0.5">
-                  {new Date(selectedPin.timestamp).toLocaleTimeString()}
-                </p>
-              </div>
-              <button onClick={() => setSelectedPin(null)} className="text-muted-foreground hover:text-foreground transition-colors p-1">
-                <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
-                  <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
-                </svg>
-              </button>
-            </CardContent>
-          </Card>
-        </div>
-      )}
+      {selectedPin && (() => {
+        const pinSession = selectedPin.sessionId
+          ? pastSessions.find(s => s.id === selectedPin.sessionId)
+          : undefined;
+        return (
+          <div className="absolute top-3 sm:top-4 left-3 sm:left-4 right-3 sm:right-4 z-10">
+            <Card className="bg-background/90 backdrop-blur-sm">
+              <CardContent className="p-3 sm:p-4 flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium" style={{ color: getZoneColor(selectedPin.zone) }}>
+                    {Math.round(selectedPin.avgDb)} dB — {selectedPin.zone.toUpperCase()}
+                  </p>
+                  <p className="text-muted-foreground text-xs mt-0.5">
+                    {pinSession?.name && <span className="text-foreground/70 mr-1.5">{pinSession.name}</span>}
+                    {new Date(selectedPin.timestamp).toLocaleTimeString()}
+                  </p>
+                </div>
+                <button onClick={() => setSelectedPin(null)} className="text-muted-foreground hover:text-foreground transition-colors p-1">
+                  <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+                    <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+                  </svg>
+                </button>
+              </CardContent>
+            </Card>
+          </div>
+        );
+      })()}
     </div>
   );
 }

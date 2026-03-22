@@ -19,6 +19,8 @@ export default function ReportPage() {
   const store = useDecibelStore();
   const { session, report, isGeneratingReport, setReport, setIsGeneratingReport, clearCurrentReport } = store;
   const [sessionPins, setSessionPins] = useState<NoiseMapPin[]>([]);
+  const [isRenaming, setIsRenaming] = useState(false);
+  const [renameValue, setRenameValue] = useState('');
 
   // Always land on the main report page, not inside a previous report
   useEffect(() => {
@@ -115,9 +117,46 @@ export default function ReportPage() {
             </svg>
           </button>
           <div>
-            <h1 className="text-lg sm:text-xl font-mono font-bold tracking-wider text-foreground uppercase">
-              {session.name || 'Report'}
-            </h1>
+            {isRenaming ? (
+              <div className="flex items-center gap-2">
+                <input
+                  autoFocus
+                  type="text"
+                  value={renameValue}
+                  onChange={(e) => setRenameValue(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && renameValue.trim()) {
+                      store.setSessionName(renameValue.trim());
+                      setIsRenaming(false);
+                    }
+                    if (e.key === 'Escape') setIsRenaming(false);
+                  }}
+                  className="bg-background border border-border rounded-md px-2 py-1 text-sm font-mono text-foreground outline-none focus:border-primary/50 w-48 sm:w-64"
+                />
+                <button
+                  onClick={() => { if (renameValue.trim()) { store.setSessionName(renameValue.trim()); setIsRenaming(false); } }}
+                  className="text-primary text-xs font-mono"
+                >Save</button>
+                <button
+                  onClick={() => setIsRenaming(false)}
+                  className="text-muted-foreground text-xs font-mono"
+                >Cancel</button>
+              </div>
+            ) : (
+              <h1
+                className="text-lg sm:text-xl font-mono font-bold tracking-wider text-foreground uppercase cursor-pointer hover:text-primary/80 transition-colors group"
+                onClick={() => { setRenameValue(session.name || ''); setIsRenaming(true); }}
+                title="Click to rename"
+              >
+                {session.name || 'Untitled Report'}
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+                  className="inline ml-2 opacity-0 group-hover:opacity-50 transition-opacity align-middle"
+                >
+                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                  <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                </svg>
+              </h1>
+            )}
             <p className="text-muted-foreground text-xs font-mono mt-0.5">AI hearing risk analysis</p>
           </div>
         </div>
