@@ -10,11 +10,17 @@ import { Card, CardContent } from '@/components/ui/card';
 import RiskReport from '@/components/RiskReport';
 import SessionHistory from '@/components/SessionHistory';
 import Link from 'next/link';
+import { useEffect } from 'react';
 import { motion } from 'framer-motion';
 
 export default function ReportPage() {
   const store = useDecibelStore();
   const { session, report, isGeneratingReport, setReport, setIsGeneratingReport, clearCurrentReport } = store;
+
+  // Always land on the main report page, not inside a previous report
+  useEffect(() => {
+    clearCurrentReport();
+  }, []);
 
   const handleGenerateReport = async () => {
     if (!session) return;
