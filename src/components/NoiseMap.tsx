@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef, useEffect, useState } from 'react';
+import { useRef, useEffect, useState, useCallback } from 'react';
 import { useDecibelStore } from '@/lib/store/decibel-store';
 import { pinsToGeoJSON, heatmapLayerConfig, circleLayerConfig } from '@/lib/map/heatmap';
 import { NoiseMapPin, getZone, getZoneColor } from '@/lib/types';
@@ -14,9 +14,22 @@ const MAPBOX_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
 export default function NoiseMap() {
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<mapboxgl.Map | null>(null);
-  const { mapPins, userLocation, setUserLocation, addMapPin, currentDb, isMonitoring } = useDecibelStore();
+  const mapPins = useDecibelStore((s) => s.mapPins);
+  const userLocation = useDecibelStore((s) => s.userLocation);
+  const setUserLocation = useDecibelStore((s) => s.setUserLocation);
+  const addMapPin = useDecibelStore((s) => s.addMapPin);
   const [mapLoaded, setMapLoaded] = useState(false);
   const [selectedPin, setSelectedPin] = useState<NoiseMapPin | null>(null);
+  const [buttonLabel, setButtonLabel] = useState({ db: 0, active: false });
+
+  // Poll store at 1Hz for button label — avoids 60fps re-renders
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const { currentDb, isMonitoring } = useDecibelStore.getState();
+      setButtonLabel({ db: Math.round(currentDb), active: isMonitoring });
+    }, 1000);
+    return () => clearInterval(interval);
+  }, []);
 
   // Load community pins from Supabase on mount
   useEffect(() => {
@@ -113,10 +126,11 @@ export default function NoiseMap() {
   }, [mapPins, mapLoaded]);
 
   const handleDropPin = () => {
-    if (!userLocation || !isMonitoring) return;
+    const { currentDb, isMonitoring: monitoring, userLocation: loc } = useDecibelStore.getState();
+    if (!loc || !monitoring) return;
     const zone = getZone(currentDb);
     const pin: NoiseMapPin = {
-      id: crypto.randomUUID(), lat: userLocation.lat, lng: userLocation.lng,
+      id: crypto.randomUUID(), lat: loc.lat, lng: loc.lng,
       avgDb: currentDb, peakDb: currentDb, timestamp: Date.now(), zone,
     };
     addMapPin(pin);
@@ -152,9 +166,9 @@ export default function NoiseMap() {
       )}
 
       <div className="absolute bottom-4 sm:bottom-4 left-3 sm:left-4 right-3 sm:right-4 flex items-end justify-between gap-3 z-10">
-        <Button variant="outline" size="sm" onClick={handleDropPin} disabled={!isMonitoring}
+        <Button variant="outline" size="sm" onClick={handleDropPin} disabled={!buttonLabel.active}
           className="bg-background/90 backdrop-blur-sm">
-          Drop Pin ({Math.round(currentDb)} dB)
+          Drop Pin ({buttonLabel.db} dB)
         </Button>
         <Badge variant="secondary" className="bg-background/90 backdrop-blur-sm font-mono text-xs">
           {mapPins.length} pin{mapPins.length !== 1 ? 's' : ''}

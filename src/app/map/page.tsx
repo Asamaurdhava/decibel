@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 
 export default function MapPage() {
-  const { mapPins } = useDecibelStore();
+  const mapPins = useDecibelStore((s) => s.mapPins);
 
   const avgDb = mapPins.length > 0 ? Math.round(mapPins.reduce((s, p) => s + p.avgDb, 0) / mapPins.length) : 0;
   const peakDb = mapPins.length > 0 ? Math.round(Math.max(...mapPins.map(p => p.peakDb))) : 0;
