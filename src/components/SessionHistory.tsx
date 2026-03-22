@@ -112,8 +112,9 @@ export default function SessionHistory() {
                 </Card>
               </div>
 
-              {/* Action buttons — slide out to the right of the card */}
-              <div className="absolute left-full top-0 bottom-0 flex items-center gap-1 pl-2 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-200 ease-out z-10">
+              {/* Action buttons — right of card on desktop, below card on mobile */}
+              {/* Desktop: slide out to the right */}
+              <div className="hidden sm:flex absolute left-full top-0 bottom-0 items-center gap-1 pl-2 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-200 ease-out z-10">
                 <button
                   onClick={(e) => handleQuickPDF(e, s)}
                   className="w-8 h-8 rounded-md bg-background border border-border flex items-center justify-center text-muted-foreground hover:text-foreground hover:border-foreground/30 transition-colors"
@@ -134,6 +135,32 @@ export default function SessionHistory() {
                     <polyline points="3 6 5 6 21 6" />
                     <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
                   </svg>
+                </button>
+              </div>
+              {/* Mobile: slide down below card, centered */}
+              <div className="sm:hidden flex justify-center gap-2 mt-1 opacity-0 -translate-y-1 group-hover:opacity-100 group-hover:translate-y-0 group-active:opacity-100 group-active:translate-y-0 transition-all duration-200 ease-out">
+                <button
+                  onClick={(e) => handleQuickPDF(e, s)}
+                  className="h-7 px-3 rounded-md bg-background border border-border flex items-center gap-1.5 text-muted-foreground text-[10px] font-mono"
+                  title="Download PDF"
+                >
+                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                    <polyline points="7 10 12 15 17 10" />
+                    <line x1="12" y1="15" x2="12" y2="3" />
+                  </svg>
+                  PDF
+                </button>
+                <button
+                  onClick={(e) => handleRemove(e, s.id)}
+                  className="h-7 px-3 rounded-md bg-background border border-red-500/20 flex items-center gap-1.5 text-red-400/60 text-[10px] font-mono"
+                  title="Remove session"
+                >
+                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="3 6 5 6 21 6" />
+                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                  </svg>
+                  Delete
                 </button>
               </div>
             </div>
