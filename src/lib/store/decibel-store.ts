@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import { DecibelState, ExposureReading, ExposureSession, getZone } from '@/lib/types';
 import { saveSession, deleteSession as deleteLocalSession } from '@/lib/db/local';
-import { savePinToCloud, saveSessionToCloud, deleteSessionFromCloud } from '@/lib/db/supabase';
+import { savePinToCloud, saveSessionToCloud, deleteSessionFromCloud, linkPinsToSession } from '@/lib/db/supabase';
 import { useToast } from '@/components/Toast';
 
 export const useDecibelStore = create<DecibelState>()(persist((set, get) => ({
@@ -121,6 +121,10 @@ export const useDecibelStore = create<DecibelState>()(persist((set, get) => ({
       useToast.getState().show('Session could not be saved locally', 'error');
     });
     saveSessionToCloud(newSession).catch(() => {});
+
+    // Batch-update Supabase pins with the new sessionId
+    const linkedPinIds = taggedPins.filter(p => p.sessionId === sessionId).map(p => p.id);
+    linkPinsToSession(linkedPinIds, sessionId).catch(() => {});
   },
 
   updateAudioData: (data) => {

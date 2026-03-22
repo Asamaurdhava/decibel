@@ -84,6 +84,15 @@ export async function getSessionPins(sessionId: string): Promise<NoiseMapPin[]> 
   }));
 }
 
+export async function linkPinsToSession(pinIds: string[], sessionId: string): Promise<void> {
+  if (pinIds.length === 0) return;
+  const { error } = await supabase
+    .from('noise_pins')
+    .update({ session_id: sessionId })
+    .in('id', pinIds);
+  if (error) throw error;
+}
+
 export async function deleteSessionFromCloud(id: string): Promise<void> {
   const { error } = await supabase.from('sessions').delete().eq('id', id);
   if (error) throw error;
