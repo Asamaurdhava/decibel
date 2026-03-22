@@ -19,6 +19,7 @@ export function pinsToGeoJSON(pins: NoiseMapPin[]): GeoJSON.FeatureCollection {
         peakDb: pin.peakDb,
         zone: pin.zone,
         timestamp: pin.timestamp,
+        sessionId: pin.sessionId || '',
         // Normalize intensity for heatmap (0-1 based on dB)
         intensity: Math.min(1, Math.max(0, (pin.avgDb - 40) / 80)),
       },

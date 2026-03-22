@@ -15,10 +15,40 @@ export default function NoiseMap() {
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<mapboxgl.Map | null>(null);
   const mapPins = useDecibelStore((s) => s.mapPins);
+  const pastSessions = useDecibelStore((s) => s.pastSessions);
   const userLocation = useDecibelStore((s) => s.userLocation);
   const [mapLoaded, setMapLoaded] = useState(false);
   const [selectedPin, setSelectedPin] = useState<NoiseMapPin | null>(null);
   const [buttonLabel, setButtonLabel] = useState({ db: 0, active: false });
+  const [filterSessionId, setFilterSessionId] = useState<string>('all');
+  const [filterOpen, setFilterOpen] = useState(false);
+
+  // Build session options from pins that have sessionIds
+  const sessionOptions = (() => {
+    const sessionIds = new Set(mapPins.filter(p => p.sessionId).map(p => p.sessionId!));
+    const options: { id: string; label: string; count: number }[] = [];
+    sessionIds.forEach(sid => {
+      const session = pastSessions.find(s => s.id === sid);
+      const count = mapPins.filter(p => p.sessionId === sid).length;
+      options.push({
+        id: sid,
+        label: session?.name || new Date(session?.startTime || 0).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        count,
+      });
+    });
+    const unlinkedCount = mapPins.filter(p => !p.sessionId).length;
+    if (unlinkedCount > 0) {
+      options.push({ id: 'unlinked', label: 'Unlinked', count: unlinkedCount });
+    }
+    return options;
+  })();
+
+  // Filter pins based on selected session
+  const filteredPins = filterSessionId === 'all'
+    ? mapPins
+    : filterSessionId === 'unlinked'
+      ? mapPins.filter(p => !p.sessionId)
+      : mapPins.filter(p => p.sessionId === filterSessionId);
 
   // Poll store at 1Hz for button label — avoids 60fps re-renders
   useEffect(() => {
@@ -88,7 +118,7 @@ export default function NoiseMap() {
         map.resize();
         geolocate.trigger();
 
-        map.addSource('noise-data', { type: 'geojson', data: pinsToGeoJSON(mapPins) });
+        map.addSource('noise-data', { type: 'geojson', data: pinsToGeoJSON(filteredPins) });
         map.addLayer(heatmapLayerConfig as mapboxgl.AnyLayer);
         map.addLayer({ ...circleLayerConfig, minzoom: 14 } as mapboxgl.AnyLayer);
 
@@ -125,8 +155,8 @@ export default function NoiseMap() {
   useEffect(() => {
     if (!mapRef.current || !mapLoaded) return;
     const source = mapRef.current.getSource('noise-data') as mapboxgl.GeoJSONSource;
-    if (source) source.setData(pinsToGeoJSON(mapPins));
-  }, [mapPins, mapLoaded]);
+    if (source) source.setData(pinsToGeoJSON(filteredPins));
+  }, [filteredPins, mapLoaded]);
 
   const handleDropPin = () => {
     const { currentDb, isMonitoring: monitoring, userLocation: loc } = useDecibelStore.getState();
@@ -168,13 +198,51 @@ export default function NoiseMap() {
         </div>
       )}
 
+      {/* Session filter — top-left */}
+      {sessionOptions.length > 0 && (
+        <div className="absolute top-3 sm:top-4 left-3 sm:left-4 z-10">
+          <div className="relative">
+            <button
+              onClick={() => setFilterOpen(!filterOpen)}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-background/90 backdrop-blur-sm border border-border text-xs font-mono text-foreground hover:border-foreground/30 transition-colors"
+            >
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" />
+              </svg>
+              {filterSessionId === 'all' ? 'All pins' : sessionOptions.find(o => o.id === filterSessionId)?.label || 'Filter'}
+            </button>
+            {filterOpen && (
+              <div className="absolute top-full left-0 mt-1 w-48 bg-background/95 backdrop-blur-sm border border-border rounded-md shadow-lg overflow-hidden">
+                <button
+                  onClick={() => { setFilterSessionId('all'); setFilterOpen(false); }}
+                  className={`w-full text-left px-3 py-2 text-xs font-mono hover:bg-muted/50 transition-colors flex justify-between ${filterSessionId === 'all' ? 'text-primary' : 'text-foreground'}`}
+                >
+                  <span>All pins</span>
+                  <span className="text-muted-foreground">{mapPins.length}</span>
+                </button>
+                {sessionOptions.map(opt => (
+                  <button
+                    key={opt.id}
+                    onClick={() => { setFilterSessionId(opt.id); setFilterOpen(false); }}
+                    className={`w-full text-left px-3 py-2 text-xs font-mono hover:bg-muted/50 transition-colors flex justify-between ${filterSessionId === opt.id ? 'text-primary' : 'text-foreground'}`}
+                  >
+                    <span className="truncate mr-2">{opt.label}</span>
+                    <span className="text-muted-foreground shrink-0">{opt.count}</span>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
       <div className="absolute bottom-4 sm:bottom-4 left-3 sm:left-4 right-3 sm:right-4 flex items-end justify-between gap-3 z-10">
         <Button variant="outline" size="sm" onClick={handleDropPin} disabled={!buttonLabel.active}
           className="bg-background/90 backdrop-blur-sm">
           Drop Pin ({buttonLabel.db} dB)
         </Button>
         <Badge variant="secondary" className="bg-background/90 backdrop-blur-sm font-mono text-xs">
-          {mapPins.length} pin{mapPins.length !== 1 ? 's' : ''}
+          {filteredPins.length}{filterSessionId !== 'all' ? `/${mapPins.length}` : ''} pin{filteredPins.length !== 1 ? 's' : ''}
         </Badge>
       </div>
 
