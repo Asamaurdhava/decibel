@@ -25,6 +25,8 @@ export const useDecibelStore = create<DecibelState>()(persist((set, get) => ({
   timeAbove85: 0,
   timeAbove100: 0,
   dangerZoneDuration: 0,
+  _updateCount: 0,
+  _lastUpdateTime: 0,
 
   // Map
   mapPins: [],
@@ -56,6 +58,8 @@ export const useDecibelStore = create<DecibelState>()(persist((set, get) => ({
       timeAbove85: 0,
       timeAbove100: 0,
       dangerZoneDuration: 0,
+      _updateCount: 0,
+      _lastUpdateTime: 0,
       report: null,
       contextualTip: null,
       noiseComparison: null,
@@ -101,24 +105,28 @@ export const useDecibelStore = create<DecibelState>()(persist((set, get) => ({
     const zone = getZone(data.currentDb);
     const newPeak = Math.max(state.peakDb, data.currentDb);
 
-    // Calculate running average
-    const readingCount = state.readings.length;
-    const newAvg = readingCount > 0
-      ? (state.avgDb * readingCount + data.currentDb) / (readingCount + 1)
+    // Calculate running average using frame count for accuracy
+    const newUpdateCount = (state._updateCount || 0) + 1;
+    const newAvg = state._updateCount
+      ? (state.avgDb * state._updateCount + data.currentDb) / newUpdateCount
       : data.currentDb;
 
-    // Track time above thresholds (assuming ~100ms update interval)
-    const updateInterval = 0.1; // seconds
+    // Use real elapsed time for threshold tracking
+    const now = performance.now();
+    const elapsed = state._lastUpdateTime
+      ? (now - state._lastUpdateTime) / 1000 // convert ms to seconds
+      : 0;
+
     const newTimeAbove85 = data.currentDb >= 85
-      ? state.timeAbove85 + updateInterval
+      ? state.timeAbove85 + elapsed
       : state.timeAbove85;
     const newTimeAbove100 = data.currentDb >= 100
-      ? state.timeAbove100 + updateInterval
+      ? state.timeAbove100 + elapsed
       : state.timeAbove100;
 
     // Track continuous danger zone duration
     const newDangerDuration = zone === 'danger'
-      ? state.dangerZoneDuration + updateInterval
+      ? state.dangerZoneDuration + elapsed
       : 0;
 
     set({
@@ -131,6 +139,8 @@ export const useDecibelStore = create<DecibelState>()(persist((set, get) => ({
       timeAbove85: newTimeAbove85,
       timeAbove100: newTimeAbove100,
       dangerZoneDuration: newDangerDuration,
+      _updateCount: newUpdateCount,
+      _lastUpdateTime: now,
     });
   },
 

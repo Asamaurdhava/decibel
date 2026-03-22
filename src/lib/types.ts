@@ -152,6 +152,8 @@ export interface DecibelState {
   timeAbove85: number; // seconds
   timeAbove100: number; // seconds
   dangerZoneDuration: number; // seconds in current danger zone stint
+  _updateCount: number; // internal: frame count for accurate averaging
+  _lastUpdateTime: number; // internal: performance.now() for elapsed time
 
   // Map
   mapPins: NoiseMapPin[];

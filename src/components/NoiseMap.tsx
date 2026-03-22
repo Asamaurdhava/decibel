@@ -79,8 +79,17 @@ export default function NoiseMap() {
         map.on('click', 'noise-points', (e) => {
           if (e.features && e.features[0]) {
             const props = e.features[0].properties;
-            if (props) {
-              setSelectedPin({ id: '', lat: 0, lng: 0, avgDb: props.avgDb, peakDb: props.peakDb, zone: props.zone, timestamp: props.timestamp });
+            const geometry = e.features[0].geometry as GeoJSON.Point;
+            if (props && geometry) {
+              setSelectedPin({
+                id: '',
+                lat: geometry.coordinates[1],
+                lng: geometry.coordinates[0],
+                avgDb: props.avgDb,
+                peakDb: props.peakDb,
+                zone: props.zone,
+                timestamp: props.timestamp,
+              });
             }
           }
         });
