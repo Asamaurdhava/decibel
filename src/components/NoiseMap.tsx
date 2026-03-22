@@ -4,7 +4,7 @@ import { useRef, useEffect, useState } from 'react';
 import { useDecibelStore } from '@/lib/store/decibel-store';
 import { pinsToGeoJSON, heatmapLayerConfig, circleLayerConfig } from '@/lib/map/heatmap';
 import { NoiseMapPin, getZone, getZoneColor } from '@/lib/types';
-import { getCloudPins } from '@/lib/db/supabase';
+import { getCloudPins, getCloudSessions } from '@/lib/db/supabase';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
@@ -59,10 +59,13 @@ export default function NoiseMap() {
     return () => clearInterval(interval);
   }, []);
 
-  // Load community pins from Supabase on mount
+  // Load community pins + sessions from Supabase on mount
   useEffect(() => {
     getCloudPins()
       .then((pins) => useDecibelStore.getState().loadCloudPins(pins))
+      .catch(() => {});
+    getCloudSessions()
+      .then((sessions) => useDecibelStore.getState().setPastSessions(sessions))
       .catch(() => {});
   }, []);
 
