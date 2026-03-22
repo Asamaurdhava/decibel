@@ -128,7 +128,7 @@ export default function ExposureTimeline() {
   return (
     <div ref={containerRef} className="w-full h-40 sm:h-48 md:h-56 lg:h-64 rounded-lg border border-border bg-card overflow-hidden relative">
       <svg ref={svgRef} className="w-full h-full" />
-      <span className="absolute top-2.5 left-3 text-[9px] text-muted-foreground/50 font-mono uppercase tracking-[0.2em]">
+      <span className="absolute top-2 left-12 sm:left-14 text-[9px] text-muted-foreground/50 font-mono uppercase tracking-[0.2em]">
         Exposure
       </span>
     </div>

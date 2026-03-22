@@ -91,6 +91,20 @@ export const useDecibelStore = create<DecibelState>()(persist((set, get) => ({
       isMonitoring: false,
       session: newSession,
       pastSessions: [newSession, ...state.pastSessions],
+      // Reset display values to zero for clean slate
+      currentDb: 0,
+      peakDb: 0,
+      avgDb: 0,
+      zone: 'safe',
+      waveformData: null,
+      frequencyData: null,
+      readings: [],
+      noiseDosePercent: 0,
+      timeAbove85: 0,
+      timeAbove100: 0,
+      dangerZoneDuration: 0,
+      _updateCount: 0,
+      _lastUpdateTime: 0,
     });
 
     // Persist to IndexedDB + Supabase
