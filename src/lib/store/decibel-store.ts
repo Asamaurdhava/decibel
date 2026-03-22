@@ -38,7 +38,6 @@ export const useDecibelStore = create<DecibelState>()(persist((set, get) => ({
 
   // Session history
   pastSessions: [],
-  deletedSessionIds: [] as string[],
 
   // Claude real-time features
   contextualTip: null,
@@ -240,33 +239,8 @@ export const useDecibelStore = create<DecibelState>()(persist((set, get) => ({
   },
 
   setPastSessions: (sessions) => {
-    const deleted = new Set(get().deletedSessionIds);
-    const existing = get().pastSessions;
-    const existingMap = new Map(existing.map(s => [s.id, s]));
-
-    // Merge: combine best fields from local + cloud
-    const merged = sessions
-      .filter(s => !deleted.has(s.id))
-      .map(s => {
-        const prev = existingMap.get(s.id);
-        if (!prev) return s;
-        // Merge: take the best of both (cloud name, local report, etc.)
-        return {
-          ...s,
-          name: s.name || prev.name,
-          report: s.report || prev.report,
-        };
-      });
-
-    // Also keep any existing sessions not in the DB list (e.g. just created)
-    existing.forEach(s => {
-      if (!deleted.has(s.id) && !merged.find(m => m.id === s.id)) {
-        merged.push(s);
-      }
-    });
-
-    merged.sort((a, b) => b.startTime - a.startTime);
-    set({ pastSessions: merged });
+    sessions.sort((a, b) => b.startTime - a.startTime);
+    set({ pastSessions: sessions });
   },
 
   loadSessionFromHistory: (session) => {
@@ -282,7 +256,6 @@ export const useDecibelStore = create<DecibelState>()(persist((set, get) => ({
     const state = get();
     set({
       pastSessions: state.pastSessions.filter(s => s.id !== id),
-      deletedSessionIds: [...state.deletedSessionIds, id],
       ...(state.session?.id === id ? { session: null, report: null } : {}),
     });
     deleteLocalSession(id).catch(() => {});
@@ -338,8 +311,5 @@ export const useDecibelStore = create<DecibelState>()(persist((set, get) => ({
   partialize: (state) => ({
     session: state.session,
     report: state.report,
-    pastSessions: state.pastSessions,
-    deletedSessionIds: state.deletedSessionIds,
-    mapPins: state.mapPins,
   }),
 }));
