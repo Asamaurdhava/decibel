@@ -256,6 +256,7 @@ export const useDecibelStore = create<DecibelState>()(persist((set, get) => ({
     const state = get();
     set({
       pastSessions: state.pastSessions.filter(s => s.id !== id),
+      mapPins: state.mapPins.filter(p => p.sessionId !== id),
       ...(state.session?.id === id ? { session: null, report: null } : {}),
     });
     deleteLocalSession(id).catch(() => {});

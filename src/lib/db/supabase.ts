@@ -94,6 +94,8 @@ export async function linkPinsToSession(pinIds: string[], sessionId: string): Pr
 }
 
 export async function deleteSessionFromCloud(id: string): Promise<void> {
+  // Delete linked pins first, then the session
+  await supabase.from('noise_pins').delete().eq('session_id', id);
   const { error } = await supabase.from('sessions').delete().eq('id', id);
   if (error) throw error;
 }
