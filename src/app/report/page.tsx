@@ -18,10 +18,12 @@ import { getSessionPins } from '@/lib/db/supabase';
 export default function ReportPage() {
   const store = useDecibelStore();
   const { session, report, isGeneratingReport, setReport, setIsGeneratingReport, clearCurrentReport } = store;
+  const [sessionPins, setSessionPins] = useState<NoiseMapPin[]>([]);
 
   // Always land on the main report page, not inside a previous report
   useEffect(() => {
     clearCurrentReport();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleGenerateReport = async () => {
@@ -84,7 +86,6 @@ export default function ReportPage() {
   }
 
   const dur = session.endTime ? Math.round((session.endTime - session.startTime) / 60000) : 0;
-  const [sessionPins, setSessionPins] = useState<NoiseMapPin[]>([]);
 
   useEffect(() => {
     if (session?.id) {
