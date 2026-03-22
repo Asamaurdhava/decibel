@@ -152,31 +152,8 @@ export default function ReportPage() {
 
       <RiskReport />
 
-      {/* Linked noise pins — after report */}
-      {sessionPins.length > 0 && (
-        <Card className="mt-6">
-          <CardContent className="p-3 sm:p-4">
-            <p className="text-muted-foreground/50 text-[9px] font-mono uppercase tracking-[0.15em] mb-3">
-              Noise measurements · {sessionPins.length} pin{sessionPins.length !== 1 ? 's' : ''}
-            </p>
-            <div className="space-y-1.5">
-              {sessionPins.map((pin) => (
-                <div key={pin.id} className="flex items-center justify-between text-xs font-mono">
-                  <div className="flex items-center gap-2">
-                    <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: getZoneColor(pin.zone) }} />
-                    <span className="text-foreground">{Math.round(pin.avgDb)} dB</span>
-                    <span className="text-muted-foreground/40">·</span>
-                    <span className="text-muted-foreground/50 uppercase text-[9px]">{pin.zone}</span>
-                  </div>
-                  <span className="text-muted-foreground/40 text-[9px]">
-                    {new Date(pin.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
-                  </span>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      )}
+      {/* Linked noise pins — collapsible */}
+      {sessionPins.length > 0 && <PinsDropdown pins={sessionPins} />}
 
       {report && (
         <p className="text-center text-muted-foreground/30 text-[9px] mt-8 pb-4 font-mono tracking-wider">
@@ -198,6 +175,46 @@ function MiniStat({ label, value, unit }: { label: string; value: string; unit?:
           {value}{unit && <span className="text-muted-foreground text-[9px] ml-0.5">{unit}</span>}
         </p>
       </CardContent>
+    </Card>
+  );
+}
+
+function PinsDropdown({ pins }: { pins: NoiseMapPin[] }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <Card className="mt-6">
+      <button
+        onClick={() => setOpen(!open)}
+        className="w-full p-3 sm:p-4 flex items-center justify-between cursor-pointer"
+      >
+        <p className="text-muted-foreground/50 text-[9px] font-mono uppercase tracking-[0.15em]">
+          Noise measurements · {pins.length} pin{pins.length !== 1 ? 's' : ''}
+        </p>
+        <svg
+          width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+          strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+          className={`text-muted-foreground/40 transition-transform duration-200 ${open ? 'rotate-180' : ''}`}
+        >
+          <polyline points="6 9 12 15 18 9" />
+        </svg>
+      </button>
+      {open && (
+        <div className="px-3 sm:px-4 pb-3 sm:pb-4 space-y-1.5">
+          {pins.map((pin) => (
+            <div key={pin.id} className="flex items-center justify-between text-xs font-mono">
+              <div className="flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: getZoneColor(pin.zone) }} />
+                <span className="text-foreground">{Math.round(pin.avgDb)} dB</span>
+                <span className="text-muted-foreground/40">·</span>
+                <span className="text-muted-foreground/50 uppercase text-[9px]">{pin.zone}</span>
+              </div>
+              <span className="text-muted-foreground/40 text-[9px]">
+                {new Date(pin.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+              </span>
+            </div>
+          ))}
+        </div>
+      )}
     </Card>
   );
 }
