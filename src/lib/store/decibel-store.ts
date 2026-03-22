@@ -214,7 +214,27 @@ export const useDecibelStore = create<DecibelState>()(persist((set, get) => ({
 
   setPastSessions: (sessions) => {
     const deleted = new Set(get().deletedSessionIds);
-    set({ pastSessions: sessions.filter(s => !deleted.has(s.id)) });
+    const existing = get().pastSessions;
+    const existingMap = new Map(existing.map(s => [s.id, s]));
+
+    // Merge: prefer the version that has a report
+    const merged = sessions
+      .filter(s => !deleted.has(s.id))
+      .map(s => {
+        const prev = existingMap.get(s.id);
+        if (prev?.report && !s.report) return prev; // keep existing with report
+        return s;
+      });
+
+    // Also keep any existing sessions not in the DB list (e.g. just created)
+    existing.forEach(s => {
+      if (!deleted.has(s.id) && !merged.find(m => m.id === s.id)) {
+        merged.push(s);
+      }
+    });
+
+    merged.sort((a, b) => b.startTime - a.startTime);
+    set({ pastSessions: merged });
   },
 
   loadSessionFromHistory: (session) => {
