@@ -45,8 +45,14 @@ export default function NoiseMap() {
     );
   }, []);
 
+  const initialLocationRef = useRef(userLocation);
+  if (!initialLocationRef.current && userLocation) {
+    initialLocationRef.current = userLocation;
+  }
+
   useEffect(() => {
-    if (!MAPBOX_TOKEN || !mapContainerRef.current || !userLocation) return;
+    const loc = initialLocationRef.current;
+    if (!MAPBOX_TOKEN || !mapContainerRef.current || !loc) return;
     if (mapRef.current) return;
 
     const initMap = async () => {
@@ -57,7 +63,7 @@ export default function NoiseMap() {
       const map = new mapboxgl.Map({
         container: mapContainerRef.current!,
         style: 'mapbox://styles/mapbox/dark-v11',
-        center: [userLocation.lng, userLocation.lat],
+        center: [loc.lng, loc.lat],
         zoom: 15,
         attributionControl: false,
       });
@@ -71,7 +77,6 @@ export default function NoiseMap() {
       });
       map.addControl(geolocate, 'top-right');
 
-      // Update store whenever user location changes
       geolocate.on('geolocate', (e: GeolocationPosition) => {
         useDecibelStore.getState().setUserLocation({
           lat: e.coords.latitude,
@@ -80,10 +85,7 @@ export default function NoiseMap() {
       });
 
       map.on('load', () => {
-        // Ensure map fills container correctly
         map.resize();
-
-        // Auto-trigger geolocation
         geolocate.trigger();
 
         map.addSource('noise-data', { type: 'geojson', data: pinsToGeoJSON(mapPins) });
@@ -118,7 +120,7 @@ export default function NoiseMap() {
     initMap();
     return () => { if (mapRef.current) { mapRef.current.remove(); mapRef.current = null; } };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [userLocation]);
+  }, [initialLocationRef.current]);
 
   useEffect(() => {
     if (!mapRef.current || !mapLoaded) return;
