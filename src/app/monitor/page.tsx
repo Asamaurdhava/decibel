@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useDecibelStore } from '@/lib/store/decibel-store';
 import { startCapture, stopCapture } from '@/lib/audio/capture';
 import { remainingSafeTime, formatSafeTime } from '@/lib/audio/dose';
@@ -21,6 +21,9 @@ import { motion } from 'framer-motion';
 export default function MonitorPage() {
   const store = useDecibelStore();
   const [micError, setMicError] = useState<string | null>(null);
+  const [sessionName, setSessionName] = useState('');
+  const nameInputRef = useRef<HTMLInputElement>(null);
+  const justStopped = !store.isMonitoring && store.session && !store.session.name;
 
   const handleStart = async () => {
     setMicError(null);
@@ -97,6 +100,43 @@ export default function MonitorPage() {
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}
             className="mb-4 p-3 rounded-md border border-red-500/20 bg-red-500/5 text-red-400 text-xs font-mono">
             {micError}
+          </motion.div>
+        )}
+
+        {/* Session name input — shown after stopping */}
+        {justStopped && (
+          <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="mb-4">
+            <Card>
+              <CardContent className="p-3 sm:p-4">
+                <p className="text-muted-foreground text-[10px] font-mono uppercase tracking-[0.15em] mb-2">Name this session</p>
+                <div className="flex gap-2">
+                  <input
+                    ref={nameInputRef}
+                    type="text"
+                    value={sessionName}
+                    onChange={(e) => setSessionName(e.target.value)}
+                    placeholder="e.g. ASU Campus Walk"
+                    className="flex-1 bg-background border border-border rounded-md px-3 py-1.5 text-sm font-mono text-foreground placeholder:text-muted-foreground/40 outline-none focus:border-primary/50"
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' && sessionName.trim()) {
+                        store.setSessionName(sessionName.trim());
+                        setSessionName('');
+                      }
+                    }}
+                  />
+                  <Button size="sm" onClick={() => {
+                    if (sessionName.trim()) {
+                      store.setSessionName(sessionName.trim());
+                      setSessionName('');
+                    }
+                  }} className="font-mono text-xs">Save</Button>
+                  <Button size="sm" variant="outline" onClick={() => {
+                    store.setSessionName(`Session ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`);
+                    setSessionName('');
+                  }} className="font-mono text-xs text-muted-foreground">Skip</Button>
+                </div>
+              </CardContent>
+            </Card>
           </motion.div>
         )}
 

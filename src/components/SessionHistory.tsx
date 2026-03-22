@@ -91,6 +91,9 @@ export default function SessionHistory() {
                       </div>
                       <div className="w-px h-8 bg-border shrink-0" />
                       <div className="min-w-0">
+                        {s.name && (
+                          <p className="text-[11px] font-mono text-foreground/80 truncate mb-0.5">{s.name}</p>
+                        )}
                         <p className="text-[10px] font-mono text-muted-foreground truncate">
                           {date.toLocaleDateString()} {date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                         </p>

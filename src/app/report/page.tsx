@@ -10,8 +10,10 @@ import { Card, CardContent } from '@/components/ui/card';
 import RiskReport from '@/components/RiskReport';
 import SessionHistory from '@/components/SessionHistory';
 import Link from 'next/link';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
+import { NoiseMapPin, getZoneColor } from '@/lib/types';
+import { getSessionPins } from '@/lib/db/supabase';
 
 export default function ReportPage() {
   const store = useDecibelStore();
@@ -82,6 +84,18 @@ export default function ReportPage() {
   }
 
   const dur = session.endTime ? Math.round((session.endTime - session.startTime) / 60000) : 0;
+  const [sessionPins, setSessionPins] = useState<NoiseMapPin[]>([]);
+
+  useEffect(() => {
+    if (session?.id) {
+      // Load pins from store first (immediate), then from Supabase
+      const storePins = useDecibelStore.getState().mapPins.filter(p => p.sessionId === session.id);
+      setSessionPins(storePins);
+      getSessionPins(session.id).then(cloudPins => {
+        if (cloudPins.length > storePins.length) setSessionPins(cloudPins);
+      }).catch(() => {});
+    }
+  }, [session?.id]);
 
   return (
     <div className="container py-4 sm:py-6 max-w-3xl">
@@ -98,7 +112,9 @@ export default function ReportPage() {
             </svg>
           </button>
           <div>
-            <h1 className="text-lg sm:text-xl font-mono font-bold tracking-wider text-foreground uppercase">Report</h1>
+            <h1 className="text-lg sm:text-xl font-mono font-bold tracking-wider text-foreground uppercase">
+              {session.name || 'Report'}
+            </h1>
             <p className="text-muted-foreground text-xs font-mono mt-0.5">AI hearing risk analysis</p>
           </div>
         </div>
@@ -130,6 +146,32 @@ export default function ReportPage() {
         <MiniStat label="Peak" value={`${Math.round(session.maxDb)}`} unit="dB" />
         <MiniStat label="Dose" value={`${Math.round(session.noiseDosePercent)}%`} />
       </div>
+
+      {/* Linked noise pins */}
+      {sessionPins.length > 0 && (
+        <Card className="mb-6">
+          <CardContent className="p-3 sm:p-4">
+            <p className="text-muted-foreground/50 text-[9px] font-mono uppercase tracking-[0.15em] mb-3">
+              Noise measurements · {sessionPins.length} pin{sessionPins.length !== 1 ? 's' : ''}
+            </p>
+            <div className="space-y-1.5">
+              {sessionPins.map((pin) => (
+                <div key={pin.id} className="flex items-center justify-between text-xs font-mono">
+                  <div className="flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: getZoneColor(pin.zone) }} />
+                    <span className="text-foreground">{Math.round(pin.avgDb)} dB</span>
+                    <span className="text-muted-foreground/40">·</span>
+                    <span className="text-muted-foreground/50 uppercase text-[9px]">{pin.zone}</span>
+                  </div>
+                  <span className="text-muted-foreground/40 text-[9px]">
+                    {new Date(pin.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       <RiskReport />
 

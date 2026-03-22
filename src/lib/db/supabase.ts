@@ -16,6 +16,7 @@ export async function savePinToCloud(pin: NoiseMapPin): Promise<void> {
     avg_db: pin.avgDb,
     peak_db: pin.peakDb,
     zone: pin.zone,
+    session_id: pin.sessionId || null,
   });
   if (error) throw error;
 }
@@ -37,6 +38,7 @@ export async function getCloudPins(): Promise<NoiseMapPin[]> {
     peakDb: row.peak_db,
     zone: row.zone,
     timestamp: new Date(row.created_at).getTime(),
+    sessionId: row.session_id || undefined,
   }));
 }
 
@@ -45,6 +47,7 @@ export async function getCloudPins(): Promise<NoiseMapPin[]> {
 export async function saveSessionToCloud(session: ExposureSession): Promise<void> {
   const { error } = await supabase.from('sessions').upsert({
     id: session.id,
+    name: session.name || null,
     start_time: session.startTime,
     end_time: session.endTime,
     avg_db: session.avgDb,
@@ -58,6 +61,27 @@ export async function saveSessionToCloud(session: ExposureSession): Promise<void
     report: session.report || null,
   });
   if (error) throw error;
+}
+
+export async function getSessionPins(sessionId: string): Promise<NoiseMapPin[]> {
+  const { data, error } = await supabase
+    .from('noise_pins')
+    .select('*')
+    .eq('session_id', sessionId)
+    .order('created_at', { ascending: true });
+
+  if (error) throw error;
+
+  return (data || []).map((row) => ({
+    id: row.id,
+    lat: row.lat,
+    lng: row.lng,
+    avgDb: row.avg_db,
+    peakDb: row.peak_db,
+    zone: row.zone,
+    timestamp: new Date(row.created_at).getTime(),
+    sessionId: row.session_id || undefined,
+  }));
 }
 
 export async function deleteSessionFromCloud(id: string): Promise<void> {
@@ -76,6 +100,7 @@ export async function getCloudSessions(): Promise<ExposureSession[]> {
 
   return (data || []).map((row) => ({
     id: row.id,
+    name: row.name || undefined,
     startTime: row.start_time,
     endTime: row.end_time,
     readings: [],

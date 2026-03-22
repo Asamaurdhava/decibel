@@ -73,8 +73,9 @@ export const useDecibelStore = create<DecibelState>()(persist((set, get) => ({
     const readings = state.readings;
     const now = Date.now();
 
+    const sessionId = crypto.randomUUID();
     const newSession: ExposureSession = {
-      id: crypto.randomUUID(),
+      id: sessionId,
       startTime: state.sessionStartTime || now,
       endTime: now,
       readings,
@@ -87,10 +88,18 @@ export const useDecibelStore = create<DecibelState>()(persist((set, get) => ({
       location: state.userLocation || undefined,
     };
 
+    // Tag all unlinked pins from this session
+    const taggedPins = state.mapPins.map(p =>
+      !p.sessionId && p.timestamp >= (state.sessionStartTime || 0) && p.timestamp <= now
+        ? { ...p, sessionId }
+        : p
+    );
+
     set({
       isMonitoring: false,
       session: newSession,
       pastSessions: [newSession, ...state.pastSessions],
+      mapPins: taggedPins,
       // Reset display values to zero for clean slate
       currentDb: 0,
       peakDb: 0,
@@ -269,6 +278,18 @@ export const useDecibelStore = create<DecibelState>()(persist((set, get) => ({
     });
     deleteLocalSession(id).catch(() => {});
     deleteSessionFromCloud(id).catch(() => {});
+  },
+
+  setSessionName: (name: string) => {
+    const state = get();
+    if (!state.session) return;
+    const updated = { ...state.session, name };
+    set({
+      session: updated,
+      pastSessions: state.pastSessions.map(s => s.id === updated.id ? updated : s),
+    });
+    saveSession(updated).catch(() => {});
+    saveSessionToCloud(updated).catch(() => {});
   },
 
   clearCurrentReport: () => {

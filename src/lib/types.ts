@@ -50,6 +50,7 @@ export interface ExposureReading {
 
 export interface ExposureSession {
   id: string;
+  name?: string;
   startTime: number;
   endTime: number | null;
   readings: ExposureReading[];
@@ -75,6 +76,7 @@ export interface NoiseMapPin {
   peakDb: number;
   timestamp: number;
   zone: DangerZone;
+  sessionId?: string;
 }
 
 // --- Claude Analysis ---
@@ -195,6 +197,7 @@ export interface DecibelState {
   setIsGeneratingSummary: (isGenerating: boolean) => void;
   deletedSessionIds: string[];
   removeSession: (id: string) => void;
+  setSessionName: (name: string) => void;
   clearCurrentReport: () => void;
   resetSession: () => void;
 }
