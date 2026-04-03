@@ -178,59 +178,72 @@ function StatusNotice() {
       <AnimatePresence>
         {open && (
           <>
+            {/* Backdrop */}
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="fixed inset-0 z-40"
+              className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm"
               onClick={() => setOpen(false)}
             />
+            {/* Modal */}
             <motion.div
-              initial={{ opacity: 0, y: -8, scale: 0.95 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: -8, scale: 0.95 }}
-              transition={{ duration: 0.15 }}
-              className="absolute top-full left-1/2 -translate-x-1/2 mt-3 w-72 sm:w-80 z-50 rounded-lg border border-border bg-card p-4 shadow-xl"
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              transition={{ duration: 0.2 }}
+              className="fixed inset-0 z-50 flex items-center justify-center px-4"
+              onClick={() => setOpen(false)}
             >
-              <div className="flex items-start justify-between mb-3">
-                <div className="flex items-center gap-2">
-                  <span className="w-2 h-2 rounded-full bg-primary" />
-                  <span className="text-foreground text-xs font-mono font-bold uppercase tracking-wider">Status</span>
+              <div
+                className="w-full max-w-sm rounded-xl border border-border bg-card p-5 sm:p-6 shadow-2xl"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <div className="flex items-center justify-between mb-5">
+                  <h3 className="text-sm font-mono font-bold uppercase tracking-wider text-foreground">Service Status</h3>
+                  <button onClick={() => setOpen(false)} className="text-muted-foreground hover:text-foreground transition-colors p-1">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+                    </svg>
+                  </button>
                 </div>
-                <button onClick={() => setOpen(false)} className="text-muted-foreground hover:text-foreground transition-colors">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
-                  </svg>
-                </button>
-              </div>
 
-              <div className="space-y-3 text-xs font-mono">
-                <div className="flex items-center gap-2">
-                  <span className="w-1.5 h-1.5 rounded-full bg-green-500" />
-                  <span className="text-muted-foreground">Live monitoring</span>
-                  <span className="ml-auto text-green-500">Active</span>
+                <div className="space-y-3 text-xs font-mono">
+                  <div className="flex items-center justify-between py-1.5">
+                    <div className="flex items-center gap-2.5">
+                      <span className="w-2 h-2 rounded-full bg-green-500" />
+                      <span className="text-foreground">Live monitoring</span>
+                    </div>
+                    <span className="text-green-500">Active</span>
+                  </div>
+                  <div className="flex items-center justify-between py-1.5">
+                    <div className="flex items-center gap-2.5">
+                      <span className="w-2 h-2 rounded-full bg-green-500" />
+                      <span className="text-foreground">AI analysis (Claude)</span>
+                    </div>
+                    <span className="text-green-500">Active</span>
+                  </div>
+                  <div className="flex items-center justify-between py-1.5">
+                    <div className="flex items-center gap-2.5">
+                      <span className="w-2 h-2 rounded-full bg-green-500" />
+                      <span className="text-foreground">Noise map (Mapbox)</span>
+                    </div>
+                    <span className="text-green-500">Active</span>
+                  </div>
+                  <div className="flex items-center justify-between py-1.5">
+                    <div className="flex items-center gap-2.5">
+                      <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
+                      <span className="text-foreground">Cloud sync (Supabase)</span>
+                    </div>
+                    <span className="text-primary">Paused</span>
+                  </div>
                 </div>
-                <div className="flex items-center gap-2">
-                  <span className="w-1.5 h-1.5 rounded-full bg-green-500" />
-                  <span className="text-muted-foreground">AI analysis (Claude)</span>
-                  <span className="ml-auto text-green-500">Active</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="w-1.5 h-1.5 rounded-full bg-green-500" />
-                  <span className="text-muted-foreground">Noise map (Mapbox)</span>
-                  <span className="ml-auto text-green-500">Active</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="w-1.5 h-1.5 rounded-full bg-primary" />
-                  <span className="text-muted-foreground">Cloud sync (Supabase)</span>
-                  <span className="ml-auto text-primary">Paused</span>
-                </div>
-              </div>
 
-              <div className="mt-4 pt-3 border-t border-border">
-                <p className="text-muted-foreground text-[10px] font-mono leading-relaxed">
-                  The free-tier database auto-pauses after 7 days of inactivity. Session history, map pins, and cross-device sync are unavailable until reactivated. All other features work normally.
-                </p>
+                <div className="mt-5 pt-4 border-t border-border">
+                  <p className="text-muted-foreground text-[11px] font-mono leading-relaxed">
+                    This project was built during the Claude Builder Club Hackathon at ASU. The cloud database runs on Supabase&apos;s free tier, which auto-pauses after 7 days of inactivity. Session history, map pins, and cross-device sync are temporarily unavailable. Core features — live monitoring, AI analysis, and noise mapping — work normally.
+                  </p>
+                </div>
               </div>
             </motion.div>
           </>
