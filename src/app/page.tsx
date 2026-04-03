@@ -30,6 +30,11 @@ export default function Home() {
         transition={{ duration: 0.6 }}
         className="text-center max-w-3xl mx-auto relative z-10"
       >
+        {/* Database paused notice — remove when Supabase is unpaused */}
+        <p className="text-primary/50 text-[9px] sm:text-[10px] font-mono tracking-wider mb-6 sm:mb-8">
+          cloud sync paused · local monitoring active
+        </p>
+
         {/* Title */}
         <h1 className="mb-5 sm:mb-6 flex justify-center">
           <FuzzyText
