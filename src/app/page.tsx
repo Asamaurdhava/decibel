@@ -144,11 +144,25 @@ export default function Home() {
         </motion.div>
       </motion.div>
 
+      {/* Database paused notice */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 1 }}
+        className="absolute bottom-32 md:bottom-16 left-0 right-0 flex justify-center px-4 z-10"
+      >
+        <div className="rounded-md border border-primary/20 bg-primary/5 px-4 py-2 max-w-md text-center">
+          <p className="text-primary/80 text-[10px] sm:text-xs font-mono">
+            Cloud database is currently paused (Supabase free tier). Local monitoring works — session sync and map pins require an active database.
+          </p>
+        </div>
+      </motion.div>
+
       <motion.p
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 1.2 }}
-        className="absolute bottom-24 md:bottom-8 text-muted-foreground/40 text-[10px] sm:text-xs text-center px-4 max-w-md font-mono"
+        className="absolute bottom-20 md:bottom-6 text-muted-foreground/40 text-[10px] sm:text-xs text-center px-4 max-w-md font-mono"
       >
         Awareness tool only. Not a medical device.
       </motion.p>
