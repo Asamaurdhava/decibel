@@ -1,7 +1,8 @@
 'use client';
 
+import { useState } from 'react';
 import Link from 'next/link';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import BorderGlow from '@/components/ui/border-glow';
 import LightRays from '@/components/ui/light-rays';
 import FuzzyText from '@/components/ui/fuzzy-text';
@@ -31,12 +32,7 @@ export default function Home() {
         className="text-center max-w-3xl mx-auto relative z-10"
       >
         {/* Database paused notice — remove when Supabase is unpaused */}
-        <div className="mb-8 sm:mb-10 inline-flex items-center gap-2 px-4 py-2 rounded-full border border-primary/30 bg-primary/5">
-          <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
-          <span className="text-primary text-xs sm:text-sm font-mono tracking-wide">
-            Cloud sync paused — local monitoring active
-          </span>
-        </div>
+        <StatusNotice />
 
         {/* Title */}
         <h1 className="mb-5 sm:mb-6 flex justify-center">
@@ -160,6 +156,86 @@ export default function Home() {
       >
         Awareness tool only. Not a medical device.
       </motion.p>
+    </div>
+  );
+}
+
+function StatusNotice() {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <div className="mb-8 sm:mb-10 relative">
+      <button
+        onClick={() => setOpen(!open)}
+        className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-primary/30 bg-primary/5 hover:bg-primary/10 transition-colors cursor-pointer"
+      >
+        <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
+        <span className="text-primary text-xs sm:text-sm font-mono tracking-wide">
+          Cloud sync paused — local monitoring active
+        </span>
+      </button>
+
+      <AnimatePresence>
+        {open && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-40"
+              onClick={() => setOpen(false)}
+            />
+            <motion.div
+              initial={{ opacity: 0, y: -8, scale: 0.95 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -8, scale: 0.95 }}
+              transition={{ duration: 0.15 }}
+              className="absolute top-full left-1/2 -translate-x-1/2 mt-3 w-72 sm:w-80 z-50 rounded-lg border border-border bg-card p-4 shadow-xl"
+            >
+              <div className="flex items-start justify-between mb-3">
+                <div className="flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-primary" />
+                  <span className="text-foreground text-xs font-mono font-bold uppercase tracking-wider">Status</span>
+                </div>
+                <button onClick={() => setOpen(false)} className="text-muted-foreground hover:text-foreground transition-colors">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+                  </svg>
+                </button>
+              </div>
+
+              <div className="space-y-3 text-xs font-mono">
+                <div className="flex items-center gap-2">
+                  <span className="w-1.5 h-1.5 rounded-full bg-green-500" />
+                  <span className="text-muted-foreground">Live monitoring</span>
+                  <span className="ml-auto text-green-500">Active</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="w-1.5 h-1.5 rounded-full bg-green-500" />
+                  <span className="text-muted-foreground">AI analysis (Claude)</span>
+                  <span className="ml-auto text-green-500">Active</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="w-1.5 h-1.5 rounded-full bg-green-500" />
+                  <span className="text-muted-foreground">Noise map (Mapbox)</span>
+                  <span className="ml-auto text-green-500">Active</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="w-1.5 h-1.5 rounded-full bg-primary" />
+                  <span className="text-muted-foreground">Cloud sync (Supabase)</span>
+                  <span className="ml-auto text-primary">Paused</span>
+                </div>
+              </div>
+
+              <div className="mt-4 pt-3 border-t border-border">
+                <p className="text-muted-foreground text-[10px] font-mono leading-relaxed">
+                  The free-tier database auto-pauses after 7 days of inactivity. Session history, map pins, and cross-device sync are unavailable until reactivated. All other features work normally.
+                </p>
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
