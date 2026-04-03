@@ -31,9 +31,12 @@ export default function Home() {
         className="text-center max-w-3xl mx-auto relative z-10"
       >
         {/* Database paused notice — remove when Supabase is unpaused */}
-        <p className="text-primary/50 text-[9px] sm:text-[10px] font-mono tracking-wider mb-6 sm:mb-8">
-          cloud sync paused · local monitoring active
-        </p>
+        <div className="mb-8 sm:mb-10 inline-flex items-center gap-2 px-4 py-2 rounded-full border border-primary/30 bg-primary/5">
+          <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
+          <span className="text-primary text-xs sm:text-sm font-mono tracking-wide">
+            Cloud sync paused — local monitoring active
+          </span>
+        </div>
 
         {/* Title */}
         <h1 className="mb-5 sm:mb-6 flex justify-center">
